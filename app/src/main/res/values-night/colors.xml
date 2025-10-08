@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme colors -->
+    <color name="dark_background">#FF121212</color>
+    <color name="dark_surface">#FF1E1E1E</color>
+    <color name="dark_text_primary">#FFFFFFFF</color>
+    <color name="dark_text_secondary">#FFB3B3B3</color>
+    <color name="dark_chat_bot_bg">#FF2C2C2C</color>
+    <color name="dark_chat_bot_border">#FF404040</color>
+    <color name="dark_primary">#FFBB86FC</color>
+    <color name="dark_primary_dark">#FF3700B3</color>
+    <color name="dark_accent">#FF03DAC5</color>
+    
+    <!-- Button colors for dark theme with neon accents -->
+    <color name="button_new_patient_bg">#FF2B2B2B</color>
+    <color name="button_schedule_bg">#FF2B2B2B</color>
+    <color name="button_reports_bg">#FF2B2B2B</color>
+    <color name="button_text_light">#FF00D4FF</color>
+    
+    <!-- AI Insights card for dark theme -->
+    <color name="ai_insights_bg_light">#FF2B2B2B</color>
+    <color name="ai_insights_title_light">#FFFF9800</color>
+    
+    <!-- Statistics card colors for dark theme -->
+    <color name="background_card">#FF2B2B2B</color>
+</resources>

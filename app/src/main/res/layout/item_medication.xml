@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@android:color/white"
+    android:layout_marginBottom="8dp"
+    android:elevation="2dp">
+
+    <!-- Medication Name -->
+    <TextView
+        android:id="@+id/med_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Paracetamol"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Type -->
+    <TextView
+        android:id="@+id/med_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tablet"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="2dp" />
+
+    <!-- Dosage, Frequency, Duration -->
+    <TextView
+        android:id="@+id/med_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="500mg, Twice a day, 5 days"
+        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="4dp" />
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/med_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ongoing"
+        android:textStyle="italic"
+        android:textSize="14sp"
+        android:textColor="@android:color/holo_green_dark"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>

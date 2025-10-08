@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/android:windowBackground"
+    tools:openDrawer="start">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/android:windowBackground">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="?attr/colorPrimary">
+
+        <ImageView
+            android:id="@+id/menu_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_menu"
+            android:contentDescription="Menu"
+            android:background="@drawable/circle_background"
+            android:tint="?attr/colorOnPrimary"
+            android:padding="8dp"/>
+
+        <ImageView
+            android:id="@+id/back_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="Back"
+            android:tint="?attr/colorOnPrimary"
+            android:padding="8dp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="All Patients"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnPrimary"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
+
+    <!-- Search bar -->
+    <EditText
+        android:id="@+id/search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:hint="Search patients"
+        android:padding="12dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOnSurface"
+        android:background="@drawable/rounded_card_background"/>
+
+    <!-- RecyclerView for patients -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/all_patients_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"/>
+</LinearLayout>
+
+<!-- Navigation Drawer -->
+<com.google.android.material.navigation.NavigationView
+    android:id="@+id/nav_view"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:fitsSystemWindows="true"
+    app:menu="@menu/doctor_drawer_menu"
+    app:headerLayout="@layout/nav_header_doctor"
+    android:background="?attr/colorSurface"
+    app:itemTextColor="?attr/colorOnSurface"
+    app:itemIconTint="?attr/colorPrimary"/>
+
+</androidx.drawerlayout.widget.DrawerLayout>

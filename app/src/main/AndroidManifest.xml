@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.myrajouney">
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".MyApplication"
+        android:label="@string/app_name"
+        android:allowBackup="true"
+        android:icon="@drawable/logo"
+        android:roundIcon="@drawable/logo"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Myrajouney">
+
+        <!-- SplashActivity is the first screen -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:label=""
+            android:theme="@style/Theme.Myrajouney.FullScreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Other screens -->
+        <activity android:name=".OnboardingActivity" android:label="" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".LoginActivity" android:label="" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".ForgotPasswordActivity" android:label="" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".PatientDashboardActivity" android:label="" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".DoctorDashboardActivity" android:label="" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".AdminDashboardActivity" android:label="" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".DummyActivity" android:label="" />
+        <activity android:name=".CreatePatientActivity" android:label="" />
+        <activity android:name=".CreateDoctorActivity" android:label="" />
+        <activity android:name=".EditPatientActivity" android:label="" />
+        <activity android:name=".EditDoctorActivity" android:label="" />
+        <activity android:name=".SettingsActivity" android:label="" />
+        <activity android:name=".AllPatientsActivity" android:label="" />
+        <activity android:name=".AllNotificationsActivity" android:label="" />
+        <activity android:name=".PatientDetailsActivity" android:label="" />
+        <activity android:name=".AllMedicationsActivity" android:label="" />
+        <activity android:name=".AllRehabActivity" android:label="" />
+        <activity android:name=".PatientAppointmentsActivity" android:label="" />
+        <activity android:name=".SymptomLogActivity" android:label="" />
+        <activity android:name=".UploadReportActivity" android:label="" />
+        <activity android:name=".ReportList" android:label="" />
+        <activity android:name=".DoctorScheduleActivity" android:label="" />
+        <activity android:name=".PatientRehabilitationActivity" android:label="" />
+        <activity android:name=".PatientMedicationsActivity" android:label="" />
+        <activity android:name=".EducationHubActivity" android:label="" />
+        <activity android:name=".HealthStatsActivity" android:label="" />
+        <activity android:name=".AppointmentDetailsActivity" android:label="" />
+        <activity android:name=".AddAppointmentActivity" android:label="" />
+        <activity android:name=".DoctorReportsActivity" android:label="" />
+
+        <!-- Medication Reminder Receivers -->
+        <receiver android:name=".MedicationReminderReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver android:name=".MarkMedicationTakenReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
+    </application>
+</manifest>
