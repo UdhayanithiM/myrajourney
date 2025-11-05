@@ -21,10 +21,17 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myrajouney.api.ApiService;
+import com.example.myrajouney.api.models.ApiResponse;
+import com.example.myrajouney.api.models.PatientOverview;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
@@ -64,8 +71,42 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // Set up click listeners
         setupClickListeners();
         
+        // Load patient overview data from API
+        loadPatientOverview();
+        
         // Add welcome message
         addWelcomeMessage();
+    }
+    
+    private void loadPatientOverview() {
+        ApiService apiService = com.example.myrajouney.api.ApiClient.getApiService(this);
+        Call<ApiResponse<PatientOverview>> call = apiService.getPatientOverview();
+        
+        call.enqueue(new Callback<ApiResponse<PatientOverview>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<PatientOverview>> call, Response<ApiResponse<PatientOverview>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    PatientOverview overview = response.body().getData();
+                    if (overview != null) {
+                        // Update UI with real data
+                        updateDashboard(overview);
+                    }
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<ApiResponse<PatientOverview>> call, Throwable t) {
+                // Handle error silently - app will work with empty data
+            }
+        });
+    }
+    
+    private void updateDashboard(PatientOverview overview) {
+        // Update unread notifications count if there's a TextView for it
+        // You can add UI updates here based on the overview data
+        if (overview.getUnreadNotifications() > 0) {
+            // Show notification badge or update text
+        }
     }
     
     private void initializeViews() {
@@ -260,7 +301,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         builder.setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    sessionManager.logout();
+                    sessionManager.logout(PatientDashboardActivity.this);
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })

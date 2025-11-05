@@ -101,7 +101,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         builder.setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    sessionManager.logout();
+                    sessionManager.logout(AdminDashboardActivity.this);
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })

@@ -61,12 +61,64 @@ public class PatientMedicationsActivity extends AppCompatActivity {
 
     private void loadTodayMedications() {
         todayMedications = new ArrayList<>();
+        
+        // Load medications from API
+        loadMedicationsFromAPI();
+    }
+    
+    private void loadMedicationsFromAPI() {
+        ApiService apiService = com.example.myrajouney.api.ApiClient.getApiService(this);
+        Call<ApiResponse<List<com.example.myrajouney.api.models.Medication>>> call = apiService.getPatientMedications();
+        
+        call.enqueue(new Callback<ApiResponse<List<com.example.myrajouney.api.models.Medication>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<com.example.myrajouney.api.models.Medication>>> call, 
+                                 Response<ApiResponse<List<com.example.myrajouney.api.models.Medication>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    List<com.example.myrajouney.api.models.Medication> medications = response.body().getData();
+                    if (medications != null && !medications.isEmpty()) {
+                        // Convert API medications to local MedicationSchedule
+                        for (com.example.myrajouney.api.models.Medication med : medications) {
+                            if (med.isActive()) {
+                                // Parse frequency to get time (simplified - you may need more complex parsing)
+                                String time = parseTimeFromFrequency(med.getFrequency());
+                                todayMedications.add(new MedicationSchedule(
+                                    med.getMedicationName(),
+                                    med.getDosage(),
+                                    time,
+                                    false // Check from logs
+                                ));
+                            }
+                        }
+                        displayMedications();
+                    } else {
+                        // No medications - show empty state
+                        displayMedications();
+                    }
+                } else {
+                    // Error loading - show empty state
+                    displayMedications();
+                }
+            }
 
-        // Mock data - In real app, this would come from database/server
-        // based on prescriptions from doctors
-        todayMedications.add(new MedicationSchedule("Methotrexate", "7.5mg", "8:00 AM", false));
-        todayMedications.add(new MedicationSchedule("Prednisolone", "5mg", "2:00 PM", false));
-        todayMedications.add(new MedicationSchedule("Folic Acid", "1mg", "8:00 PM", true)); // Already taken
+            @Override
+            public void onFailure(Call<ApiResponse<List<com.example.myrajouney.api.models.Medication>>> call, Throwable t) {
+                // Network error - show empty state or fallback
+                displayMedications();
+            }
+        });
+    }
+    
+    private String parseTimeFromFrequency(String frequency) {
+        // Simple parsing - in real app, you'd parse the frequency field properly
+        if (frequency != null && frequency.contains("8:00") || frequency.contains("morning")) {
+            return "8:00 AM";
+        } else if (frequency != null && frequency.contains("2:00") || frequency.contains("afternoon")) {
+            return "2:00 PM";
+        } else if (frequency != null && frequency.contains("8:00") || frequency.contains("evening")) {
+            return "8:00 PM";
+        }
+        return "8:00 AM"; // Default
     }
 
     private void displayMedications() {

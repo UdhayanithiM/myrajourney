@@ -12,6 +12,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myrajouney.api.ApiService;
+import com.example.myrajouney.api.models.ApiResponse;
+import com.example.myrajouney.api.models.AuthRequest;
+import com.example.myrajouney.api.models.AuthResponse;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername, etPassword;
@@ -93,13 +102,13 @@ public class LoginActivity extends AppCompatActivity {
         // Show loading
         loadingDialog.show("Logging in...");
 
-        // Simulate authentication (replace with real authentication)
-        simulateAuthentication(username, password, role);
+        // Real API authentication
+        performApiLogin(username, password, role);
     }
     
     private String validateLoginInput(String username, String password, String role) {
         if (TextUtils.isEmpty(username)) {
-            return "Please enter username";
+            return "Please enter email";
         }
         if (TextUtils.isEmpty(password)) {
             return "Please enter password";
@@ -110,37 +119,90 @@ public class LoginActivity extends AppCompatActivity {
         if (!ValidationUtils.isValidPassword(password)) {
             return "Password must be at least 6 characters";
         }
+        // Validate email format
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(username).matches()) {
+            return "Please enter a valid email address";
+        }
         return null;
     }
     
-    private void simulateAuthentication(String username, String password, String role) {
-        // Simulate network delay
-        new android.os.Handler().postDelayed(() -> {
-            loadingDialog.dismiss();
-            
-            // Simple authentication logic (replace with real authentication)
-            if (authenticateUser(username, password, role)) {
-                // Create session
-                String userId = generateUserId(username, role);
-                sessionManager.createSession(userId, username, role);
+    private void performApiLogin(String email, String password, String role) {
+        // Create API service
+        ApiService apiService = com.example.myrajouney.api.ApiClient.getApiService(this);
+        
+        // Create login request
+        AuthRequest request = new AuthRequest(email, password);
+        
+        // Make API call
+        Call<ApiResponse<AuthResponse>> call = apiService.login(request);
+        call.enqueue(new Callback<ApiResponse<AuthResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> response) {
+                loadingDialog.dismiss();
                 
-                Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                redirectToDashboard(role);
-            } else {
-                Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<AuthResponse> apiResponse = response.body();
+                    
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        AuthResponse authResponse = apiResponse.getData();
+                        String token = authResponse.getToken();
+                        com.example.myrajouney.api.models.User user = authResponse.getUser();
+                        
+                        if (token != null && user != null) {
+                            // Save token
+                            TokenManager.getInstance(LoginActivity.this).saveToken(token);
+                            TokenManager.getInstance(LoginActivity.this).saveUserInfo(
+                                    user.getId(), 
+                                    user.getEmail(), 
+                                    user.getRole()
+                            );
+                            
+                            // Create session for backward compatibility
+                            sessionManager.createSession(user.getId(), user.getEmail(), user.getRole());
+                            
+                            Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                            
+                            // Redirect based on user role from API
+                            String userRole = user.getRole();
+                            if (userRole.equals("PATIENT")) {
+                                redirectToDashboard("Patient");
+                            } else if (userRole.equals("DOCTOR")) {
+                                redirectToDashboard("Doctor");
+                            } else if (userRole.equals("ADMIN")) {
+                                redirectToDashboard("Admin");
+                            } else {
+                                redirectToDashboard(role);
+                            }
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Invalid response from server", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        String errorMsg = apiResponse.getError() != null ? 
+                                apiResponse.getError().getMessage() : "Login failed";
+                        Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Handle error response
+                    String errorMsg = "Login failed. Please try again.";
+                    if (response.code() == 401) {
+                        errorMsg = "Invalid email or password";
+                    } else if (response.code() == 404) {
+                        errorMsg = "Server not found. Please check your connection.";
+                    }
+                    Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                }
             }
-        }, 1500);
-    }
-    
-    private boolean authenticateUser(String username, String password, String role) {
-        // Simple authentication logic (replace with real authentication)
-        // For demo purposes, accept any username/password combination
-        return !TextUtils.isEmpty(username) && !TextUtils.isEmpty(password);
-    }
-    
-    private String generateUserId(String username, String role) {
-        // Generate a simple user ID
-        return role.toUpperCase() + "_" + username.hashCode();
+            
+            @Override
+            public void onFailure(Call<ApiResponse<AuthResponse>> call, Throwable t) {
+                loadingDialog.dismiss();
+                String errorMsg = "Network error: " + t.getMessage();
+                if (t.getMessage() != null && t.getMessage().contains("Unable to resolve host")) {
+                    errorMsg = "Cannot connect to server. Please check your internet connection and server URL.";
+                }
+                Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
     
     private void redirectToDashboard(String role) {

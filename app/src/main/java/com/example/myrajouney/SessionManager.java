@@ -48,9 +48,13 @@ public class SessionManager {
         return prefs.getLong(KEY_LOGIN_TIME, 0);
     }
     
-    public void logout() {
+    public void logout(Context context) {
         editor.clear();
         editor.apply();
+        // Also clear token
+        if (context != null) {
+            TokenManager.getInstance(context).clear();
+        }
     }
     
     public boolean isSessionValid() {

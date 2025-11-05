@@ -292,7 +292,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         builder.setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    sessionManager.logout();
+                    sessionManager.logout(DoctorDashboardActivity.this);
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })
