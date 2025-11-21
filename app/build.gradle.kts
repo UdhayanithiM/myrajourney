@@ -3,11 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myrajouney"
+    // ✅ FIXED TYPO: myrajouney -> myrajourney
+    namespace = "com.example.myrajourney"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.myrajouney"
+        // ✅ FIXED TYPO: myrajouney -> myrajourney
+        applicationId = "com.example.myrajourney"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -15,7 +17,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Configurable API base URL via Gradle property or env; fallback to empty (use ApiClient defaults)
+        // Configurable API base URL
         val apiBaseUrl: String = (project.findProperty("API_BASE_URL") as String?)
             ?: System.getenv("API_BASE_URL")
             ?: ""
@@ -47,32 +49,32 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
 
-    // ✅ Glide for image loading
+    // ✅ 1. Security Crypto (Required for TokenManager)
+    implementation("androidx.security:security-crypto:1.0.0")
+
+    // ✅ 2. Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
-    // ✅ ViewModel and LiveData
+    // ✅ 3. ViewModel and LiveData
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata:2.7.0")
 
-    // ✅ RecyclerView
+    // ✅ 4. UI Components
     implementation("androidx.recyclerview:recyclerview:1.3.2")
-
-    // ✅ CardView
     implementation("androidx.cardview:cardview:1.0.0")
-
-    // ✅ ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // ✅ Networking - Retrofit & OkHttp
+    // ✅ 5. Networking - Retrofit & OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // ✅ JSON parsing
+    // ✅ 6. JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

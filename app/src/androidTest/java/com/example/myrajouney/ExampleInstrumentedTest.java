@@ -1,4 +1,4 @@
-package com.example.myrajouney;
+﻿package com.example.myrajouney;
 
 import android.content.Context;
 
@@ -24,3 +24,4 @@ public class ExampleInstrumentedTest {
         assertEquals("com.example.myrajouney", appContext.getPackageName());
     }
 }
+
