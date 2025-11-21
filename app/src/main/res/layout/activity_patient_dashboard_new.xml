@@ -56,6 +56,7 @@
                     android:alpha="0.8"/>
 
                 <TextView
+                    android:id="@+id/welcomeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Welcome Back!"
@@ -66,14 +67,14 @@
 
             <ImageView
                 android:id="@+id/logoutBtn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="16dp"
                 android:src="@android:drawable/ic_menu_send"
                 android:contentDescription="Logout"
+                android:tint="@color/white"
                 android:background="@drawable/circle_background"
-                android:tint="?attr/colorOnPrimary"
-                android:padding="10dp"
-                android:elevation="4dp"/>
+                android:padding="8dp" />
         </LinearLayout>
 
         <!-- Health Status Card -->
@@ -550,6 +551,7 @@
                 android:padding="20dp">
 
                 <LinearLayout
+                    android:id="@+id/consultationCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -572,6 +574,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/consultationTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Consultation"
@@ -580,6 +583,7 @@
                             android:textColor="#2D5016"/>
 
                         <TextView
+                            android:id="@+id/consultationDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Dec 15, 2024 - 10:30 AM"
@@ -603,6 +607,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/followupCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -624,6 +629,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/followupTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Follow-up"
@@ -632,6 +638,7 @@
                             android:textColor="#8D6E16"/>
 
                         <TextView
+                            android:id="@+id/followupDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Dec 28, 2024 - 2:00 PM"

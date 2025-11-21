@@ -95,20 +95,20 @@
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Doctor ID -->
+                <!-- Specialization -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Doctor ID"
+                    android:text="Specialization (Optional)"
                     android:textSize="14sp"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
-                    android:id="@+id/etDoctorId"
+                    android:id="@+id/etSpecialization"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Enter Doctor ID (DOCxxxxx)"
+                    android:hint="e.g., Rheumatologist, Orthopedic"
                     android:textColorHint="@color/text_hint"
                     android:textColor="@color/text_primary"
                     android:background="@drawable/edit_text_background"

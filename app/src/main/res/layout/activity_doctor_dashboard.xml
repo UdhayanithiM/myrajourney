@@ -43,8 +43,37 @@
                 android:layout_marginStart="16dp"
                 android:src="@android:drawable/ic_menu_send"
                 android:contentDescription="Logout"
+                android:tint="@color/white"
                 android:background="@drawable/circle_background"
                 android:padding="8dp" />
+
+            <!-- Notification bell and badge -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp">
+
+                <ImageView
+                    android:id="@+id/notificationsBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@android:drawable/ic_dialog_info"
+                    android:contentDescription="Notifications"
+                    android:background="@drawable/circle_background"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:id="@+id/notifBadge"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|top"
+                    android:background="@android:color/holo_red_dark"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:text="0"/>
+            </FrameLayout>
 
             <EditText
                 android:id="@+id/search_bar"
@@ -57,6 +86,17 @@
                 android:background="@drawable/search_bar_background"
                 android:singleLine="true" />
         </LinearLayout>
+
+        <!-- Welcome Text -->
+        <TextView
+            android:id="@+id/welcomeDoctorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome, Doctor!"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:layout_marginTop="16dp"/>
 
         <!-- Quick Actions -->
         <TextView

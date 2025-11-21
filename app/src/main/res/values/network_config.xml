@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 
+        NETWORK CONFIGURATION
+        
+        Update this IP address when your network changes.
+        To find your current IP:
+        1. Open CMD
+        2. Type: ipconfig
+        3. Look for "IPv4 Address" under your WiFi adapter
+        4. Update the value below
+        5. Rebuild the app
+    -->
+    <string name="api_base_ip">192.168.29.162</string>
+    <string name="api_base_url">http://192.168.29.162/backend/public/api/v1/</string>
+    <string name="admin_api_url">http://192.168.29.162/myra-admin.php</string>
+</resources>

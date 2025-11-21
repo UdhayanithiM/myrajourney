@@ -56,10 +56,12 @@
         <activity android:name=".PatientRehabilitationActivity" android:label="" />
         <activity android:name=".PatientMedicationsActivity" android:label="" />
         <activity android:name=".EducationHubActivity" android:label="" />
+        <activity android:name=".ArticleViewerActivity" android:label="" />
         <activity android:name=".HealthStatsActivity" android:label="" />
         <activity android:name=".AppointmentDetailsActivity" android:label="" />
         <activity android:name=".AddAppointmentActivity" android:label="" />
         <activity android:name=".DoctorReportsActivity" android:label="" />
+        <activity android:name=".AssignPatientToDoctorActivity" android:label="" />
 
         <!-- Medication Reminder Receivers -->
         <receiver android:name=".MedicationReminderReceiver"
