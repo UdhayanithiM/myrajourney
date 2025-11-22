@@ -5,11 +5,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+// ✅ FIX: Import R
+import com.example.myrajourney.R;
+
 import com.example.myrajourney.core.network.ApiService;
-import com.example.myrajourney.data.model
-.ApiResponse;
-import com.example.myrajourney.data.model
-.EducationArticle;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.EducationArticle;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import retrofit2.Call;
@@ -68,7 +70,7 @@ public class ArticleViewerActivity extends AppCompatActivity {
     private void loadArticleFromAPI(String slug) {
         ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
         Call<ApiResponse<EducationArticle>> call = apiService.getEducationArticle(slug);
-        
+
         call.enqueue(new Callback<ApiResponse<EducationArticle>>() {
             @Override
             public void onResponse(Call<ApiResponse<EducationArticle>> call, Response<ApiResponse<EducationArticle>> response) {
@@ -92,20 +94,21 @@ public class ArticleViewerActivity extends AppCompatActivity {
     }
 
     private void displayArticle(EducationArticle article) {
+        // Use the helper method or direct field
         String htmlContent = article.getContentHtml();
-        
+
         if (htmlContent == null || htmlContent.trim().isEmpty()) {
             // Generate HTML from article data
             htmlContent = generateHTMLFromArticle(article);
         }
-        
+
         // Wrap in proper HTML structure if needed
         if (!htmlContent.contains("<html")) {
             htmlContent = wrapInHTML(htmlContent, article.getTitle());
         }
-        
+
         webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null);
-        
+
         // Update toolbar title
         if (getSupportActionBar() != null && article.getTitle() != null) {
             getSupportActionBar().setTitle(article.getTitle());
@@ -143,24 +146,24 @@ public class ArticleViewerActivity extends AppCompatActivity {
 
     private String generateFallbackContent(String slug) {
         if (slug == null) return "<p>Content not available.</p>";
-        
+
         switch (slug.toLowerCase()) {
             case "what-is-ra":
                 return "<div><h2>What is Rheumatoid Arthritis?</h2>" +
-                       "<p>Rheumatoid Arthritis (RA) is a chronic autoimmune disease that causes inflammation in the joints and can affect other parts of the body.</p>" +
-                       "<h3>Key Points:</h3><ul><li>Autoimmune disorder</li><li>Affects joints symmetrically</li><li>Can cause permanent joint damage</li><li>Early treatment is crucial</li></ul></div>";
+                        "<p>Rheumatoid Arthritis (RA) is a chronic autoimmune disease that causes inflammation in the joints and can affect other parts of the body.</p>" +
+                        "<h3>Key Points:</h3><ul><li>Autoimmune disorder</li><li>Affects joints symmetrically</li><li>Can cause permanent joint damage</li><li>Early treatment is crucial</li></ul></div>";
             case "nutrition-tips":
                 return "<div><h2>Nutrition for RA Patients</h2>" +
-                       "<p>Proper nutrition plays a vital role in managing RA symptoms and overall health.</p>" +
-                       "<h3>Recommended Foods:</h3><ul><li>Omega-3 rich fish</li><li>Fresh fruits and vegetables</li><li>Whole grains</li><li>Lean proteins</li></ul></div>";
+                        "<p>Proper nutrition plays a vital role in managing RA symptoms and overall health.</p>" +
+                        "<h3>Recommended Foods:</h3><ul><li>Omega-3 rich fish</li><li>Fresh fruits and vegetables</li><li>Whole grains</li><li>Lean proteins</li></ul></div>";
             case "lifestyle":
                 return "<div><h2>Lifestyle Management</h2>" +
-                       "<p>Maintaining a healthy lifestyle can significantly improve RA symptoms and quality of life.</p>" +
-                       "<h3>Tips:</h3><ul><li>Regular gentle exercise</li><li>Adequate rest</li><li>Stress management</li><li>Smoking cessation</li></ul></div>";
+                        "<p>Maintaining a healthy lifestyle can significantly improve RA symptoms and quality of life.</p>" +
+                        "<h3>Tips:</h3><ul><li>Regular gentle exercise</li><li>Adequate rest</li><li>Stress management</li><li>Smoking cessation</li></ul></div>";
             case "managing-symptoms":
                 return "<div><h2>Managing Your Symptoms</h2>" +
-                       "<p>Effective symptom management is key to living well with RA.</p>" +
-                       "<h3>Strategies:</h3><ul><li>Medication adherence</li><li>Physical therapy</li><li>Heat and cold therapy</li><li>Joint protection techniques</li></ul></div>";
+                        "<p>Effective symptom management is key to living well with RA.</p>" +
+                        "<h3>Strategies:</h3><ul><li>Medication adherence</li><li>Physical therapy</li><li>Heat and cold therapy</li><li>Joint protection techniques</li></ul></div>";
             default:
                 return "<p>Content for this article is being prepared. Please check back soon.</p>";
         }
@@ -175,10 +178,3 @@ public class ArticleViewerActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 }
-
-
-
-
-
-
-

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.myrajourney.R;
+
 
 public class AppointmentDetailsActivity extends AppCompatActivity {
     @Override

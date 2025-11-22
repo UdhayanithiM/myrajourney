@@ -6,6 +6,13 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+// ✅ FIX 1: Import R
+import com.example.myrajourney.R;
+// ✅ FIX 2: Import OnboardingItem model
+import com.example.myrajourney.common.models.OnboardingItem;
+// ✅ FIX 3: Import OnboardingAdapter
+import com.example.myrajourney.common.adapters.OnboardingAdapter;
+
 import com.example.myrajourney.core.navigation.NavigationManager;
 import com.example.myrajourney.core.session.SessionManager;
 
@@ -61,9 +68,3 @@ public class OnboardingActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-

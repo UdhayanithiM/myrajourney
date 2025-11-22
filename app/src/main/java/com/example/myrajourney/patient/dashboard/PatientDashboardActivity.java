@@ -30,6 +30,7 @@ import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.Appointment;
 
 // Feature Activities
+// Removed unused DoctorDashboardActivity import to avoid confusion
 import com.example.myrajourney.patient.appointments.PatientAppointmentsActivity;
 import com.example.myrajourney.patient.education.EducationHubActivity;
 import com.example.myrajourney.patient.medications.PatientMedicationsActivity;
@@ -43,7 +44,6 @@ import com.example.myrajourney.admin.dashboard.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class PatientDashboardActivity extends AppCompatActivity {
@@ -74,7 +74,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // 1. Initialize Session
         sessionManager = new SessionManager(this);
 
-        // Check if user is logged in (Fixed: Removed 'this' argument)
+        // Check if user is logged in
         if (!sessionManager.isSessionValid()) {
             NavigationManager.goToLogin(this);
             finish();
@@ -273,7 +273,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Fixed: Removed 'this' argument
+                    // ✅ Fixed: Removed argument
                     sessionManager.logout();
                     NavigationManager.goToLogin(this);
                     finish();

@@ -3,26 +3,33 @@ package com.example.myrajourney.admin.users;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+// ✅ FIX 1: Import R to access layout and IDs
+import com.example.myrajourney.R;
+// ✅ FIX 2: Import LoginActivity so Intent can find it
+import com.example.myrajourney.auth.LoginActivity;
+
 import com.example.myrajourney.core.network.ApiService;
 import com.example.myrajourney.data.model.ApiResponse;
 
 public class ResetPasswordActivity extends AppCompatActivity {
-    
+
     private EditText etEmail, etPassword, etConfirmPassword, etToken;
     private Button btnReset;
     private TextView tvInfo;
     private String token;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reset_password);
-        
+
         // Get token from intent or URL
         Intent intent = getIntent();
         token = intent.getStringExtra("token");
@@ -36,11 +43,11 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 }
             }
         }
-        
+
         initializeViews();
         setupClickListeners();
     }
-    
+
     private void initializeViews() {
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -48,24 +55,29 @@ public class ResetPasswordActivity extends AppCompatActivity {
         etToken = findViewById(R.id.etToken);
         btnReset = findViewById(R.id.btnReset);
         tvInfo = findViewById(R.id.tvInfo);
-        
+
         // If token is provided, hide email field and show token field
         if (token != null && !token.isEmpty()) {
             etToken.setText(token);
             etToken.setEnabled(false);
-            etEmail.setVisibility(android.view.View.GONE);
-            findViewById(R.id.tvEmailLabel).setVisibility(android.view.View.GONE);
+            etEmail.setVisibility(View.GONE);
+            // Ensure this ID exists in your layout, or wrap in try-catch if uncertain
+            View emailLabel = findViewById(R.id.tvEmailLabel);
+            if (emailLabel != null) emailLabel.setVisibility(View.GONE);
+
             tvInfo.setText("Enter your new password. Password must be at least 8 characters long.");
         } else {
-            etToken.setVisibility(android.view.View.GONE);
-            findViewById(R.id.tvTokenLabel).setVisibility(android.view.View.GONE);
+            etToken.setVisibility(View.GONE);
+            View tokenLabel = findViewById(R.id.tvTokenLabel);
+            if (tokenLabel != null) tokenLabel.setVisibility(View.GONE);
+
             tvInfo.setText("Enter your email and new password. Password must be at least 8 characters long.");
         }
     }
-    
+
     private void setupClickListeners() {
         btnReset.setOnClickListener(v -> performReset());
-        
+
         // Back to login
         TextView tvBackToLogin = findViewById(R.id.tvBackToLogin);
         if (tvBackToLogin != null) {
@@ -77,13 +89,13 @@ public class ResetPasswordActivity extends AppCompatActivity {
             });
         }
     }
-    
+
     private void performReset() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
         String resetToken = etToken.getText().toString().trim();
-        
+
         // Validation
         if (token == null || token.isEmpty()) {
             // Email-based reset
@@ -96,34 +108,34 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 return;
             }
         }
-        
+
         if (TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         if (password.length() < 8) {
             Toast.makeText(this, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         if (!password.equals(confirmPassword)) {
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         // Use token from field if available, otherwise use intent token
         if (resetToken.isEmpty() && token != null) {
             resetToken = token;
         }
-        
+
         // Call API
         resetPasswordAPI(email, password, resetToken);
     }
-    
+
     private void resetPasswordAPI(String email, String password, String resetToken) {
         ApiService api = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        
+
         // Create request body
         java.util.Map<String, String> requestBody = new java.util.HashMap<>();
         if (!email.isEmpty()) {
@@ -133,9 +145,9 @@ public class ResetPasswordActivity extends AppCompatActivity {
         if (!resetToken.isEmpty()) {
             requestBody.put("token", resetToken);
         }
-        
+
         retrofit2.Call<ApiResponse<Void>> call = api.resetPassword(requestBody);
-        
+
         call.enqueue(new retrofit2.Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(retrofit2.Call<ApiResponse<Void>> call, retrofit2.Response<ApiResponse<Void>> response) {
@@ -154,7 +166,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
                     Toast.makeText(ResetPasswordActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
-            
+
             @Override
             public void onFailure(retrofit2.Call<ApiResponse<Void>> call, Throwable t) {
                 Toast.makeText(ResetPasswordActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
@@ -162,10 +174,3 @@ public class ResetPasswordActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-
-

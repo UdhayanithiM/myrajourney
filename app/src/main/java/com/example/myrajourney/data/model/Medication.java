@@ -60,6 +60,9 @@ public class Medication {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
+    // ✅ FIXED: Added alias for ChatBot compatibility
+    public String getMedicationName() { return name; }
+
     public String getDosage() { return dosage; }
     public void setDosage(String dosage) { this.dosage = dosage; }
 
@@ -77,6 +80,11 @@ public class Medication {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    // ✅ FIXED: Added boolean check for ChatBot compatibility
+    public boolean isActive() {
+        return status != null && (status.equalsIgnoreCase("Ongoing") || status.equalsIgnoreCase("Active"));
+    }
 
     public String getTiming() { return timing; }
     public void setTiming(String timing) { this.timing = timing; }

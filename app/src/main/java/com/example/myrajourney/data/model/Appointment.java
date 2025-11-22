@@ -30,6 +30,13 @@ public class Appointment {
     @SerializedName("status")
     private String status;
 
+    // ✅ Added missing fields required by AppointmentAdapter
+    @SerializedName("appointment_type")
+    private String appointmentType;
+
+    @SerializedName("reason")
+    private String reason;
+
     // Local field for UI display (formatted string like "10:00 AM - 10:30 AM")
     private String timeSlot;
 
@@ -67,9 +74,18 @@ public class Appointment {
     public String getDescription() { return description; }
     public String getStatus() { return status; }
 
+    // ✅ Added missing getters
+    public String getAppointmentType() { return appointmentType; }
+    public String getReason() { return reason; }
+
     // Helper: returns timeSlot if set (local), otherwise startTime (API)
     public String getTimeSlot() {
         return timeSlot != null ? timeSlot : startTime;
+    }
+
+    // Added alias for getTime() used in PatientDetailsActivity
+    public String getTime() {
+        return startTime;
     }
 
     // Setters
@@ -78,4 +94,8 @@ public class Appointment {
     public void setDate(String date) { this.date = date; }
     public void setStartTime(String startTime) { this.startTime = startTime; }
     public void setTimeSlot(String timeSlot) { this.timeSlot = timeSlot; }
+
+    // ✅ Added missing setters
+    public void setAppointmentType(String appointmentType) { this.appointmentType = appointmentType; }
+    public void setReason(String reason) { this.reason = reason; }
 }

@@ -76,6 +76,10 @@ public class Report {
     public String getCreatedAt() { return createdAt != null ? createdAt : uploadedAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
+    // ✅ Added missing getter and setter for uploadedAt
+    public String getUploadedAt() { return uploadedAt; }
+    public void setUploadedAt(String uploadedAt) { this.uploadedAt = uploadedAt; }
+
     public String getDoctorComment() { return doctorComment; }
     public void setDoctorComment(String doctorComment) { this.doctorComment = doctorComment; }
 

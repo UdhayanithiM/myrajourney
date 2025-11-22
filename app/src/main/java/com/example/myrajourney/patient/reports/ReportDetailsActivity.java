@@ -8,6 +8,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+// ✅ FIX: Import R
+import com.example.myrajourney.R;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +53,7 @@ public class ReportDetailsActivity extends AppCompatActivity {
         reportType.setText(reportTypeStr != null ? reportTypeStr : "Report");
         reportDate.setText(reportDateStr != null ? reportDateStr : "");
         reportStatus.setText(reportStatusStr != null ? reportStatusStr : "Review Required");
-        
+
         // Load existing notes if report ID is available
         if (reportIdStr != null && !reportIdStr.isEmpty()) {
             loadReportNotes(reportIdStr);
@@ -87,7 +90,7 @@ public class ReportDetailsActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please enter diagnosis or suggestions", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             if (reportIdStr == null || reportIdStr.isEmpty()) {
                 Toast.makeText(this, "Report ID not found", Toast.LENGTH_SHORT).show();
                 return;
@@ -97,30 +100,31 @@ public class ReportDetailsActivity extends AppCompatActivity {
             saveDiagnosisToBackend(reportIdStr, diagnosis, suggestions);
         });
     }
-    
+
     private void loadReportNotes(String reportId) {
         com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
         retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.ReportNote>>> call = apiService.getReportNotes(reportId);
-        
+                .ApiResponse<List<com.example.myrajourney.data.model
+                .ReportNote>>> call = apiService.getReportNotes(reportId);
+
         call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.ReportNote>>>() {
+                .ApiResponse<List<com.example.myrajourney.data.model
+                .ReportNote>>>() {
             @Override
             public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.ReportNote>>> call,
-                                 retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.ReportNote>>> response) {
+                                           .ApiResponse<List<com.example.myrajourney.data.model
+                                           .ReportNote>>> call,
+                                   retrofit2.Response<com.example.myrajourney.data.model
+                                           .ApiResponse<List<com.example.myrajourney.data.model
+                                           .ReportNote>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     List<com.example.myrajourney.data.model
-.ReportNote> notes = response.body().getData();
+                            .ReportNote> notes = response.body().getData();
                     if (notes != null && !notes.isEmpty()) {
                         // Load the most recent note
                         com.example.myrajourney.data.model
-.ReportNote latestNote = notes.get(0);
+                                .ReportNote latestNote = notes.get(0);
+                        // ✅ These methods now exist in ReportNote.java
                         if (latestNote.getDiagnosisText() != null) {
                             diagnosisInput.setText(latestNote.getDiagnosisText());
                         }
@@ -130,37 +134,37 @@ public class ReportDetailsActivity extends AppCompatActivity {
                     }
                 }
             }
-            
+
             @Override
             public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.ReportNote>>> call, Throwable t) {
+                    .ApiResponse<List<com.example.myrajourney.data.model
+                    .ReportNote>>> call, Throwable t) {
                 // Silently fail - user can still add new notes
             }
         });
     }
-    
+
     private void saveDiagnosisToBackend(String reportId, String diagnosis, String suggestions) {
         Map<String, Object> request = new HashMap<>();
         request.put("report_id", Integer.parseInt(reportId));
         request.put("diagnosis_text", diagnosis);
         request.put("suggestions_text", suggestions);
-        
+
         com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
         retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.ReportNote>> call = apiService.createReportNote(request);
-        
+                .ApiResponse<com.example.myrajourney.data.model
+                .ReportNote>> call = apiService.createReportNote(request);
+
         call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.ReportNote>>() {
+                .ApiResponse<com.example.myrajourney.data.model
+                .ReportNote>>() {
             @Override
             public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.ReportNote>> call,
-                                 retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.ReportNote>> response) {
+                                           .ApiResponse<com.example.myrajourney.data.model
+                                           .ReportNote>> call,
+                                   retrofit2.Response<com.example.myrajourney.data.model
+                                           .ApiResponse<com.example.myrajourney.data.model
+                                           .ReportNote>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     Toast.makeText(ReportDetailsActivity.this, "Diagnosis and suggestions saved successfully! Patient will be notified.", Toast.LENGTH_LONG).show();
                     finish();
@@ -172,19 +176,13 @@ public class ReportDetailsActivity extends AppCompatActivity {
                     Toast.makeText(ReportDetailsActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                 }
             }
-            
+
             @Override
             public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.ReportNote>> call, Throwable t) {
+                    .ApiResponse<com.example.myrajourney.data.model
+                    .ReportNote>> call, Throwable t) {
                 Toast.makeText(ReportDetailsActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 }
-
-
-
-
-
-

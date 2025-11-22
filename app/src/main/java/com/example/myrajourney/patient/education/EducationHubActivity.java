@@ -8,11 +8,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.myrajourney.core.network.ApiService;
-import com.example.myrajourney.data.model
-.ApiResponse;
-import com.example.myrajourney.data.model
-.EducationArticle;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.EducationArticle;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.example.myrajourney.R;
 
 import java.util.List;
 

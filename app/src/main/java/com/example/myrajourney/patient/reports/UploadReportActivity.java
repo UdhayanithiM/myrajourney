@@ -2,7 +2,6 @@ package com.example.myrajourney.patient.reports;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
@@ -15,9 +14,23 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+// ✅ FIX: Import R
+import com.example.myrajourney.R;
+// ✅ FIX: Import TokenManager
+import com.example.myrajourney.core.session.TokenManager;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+// Retrofit imports for cleaner code
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.Report;
 
 public class UploadReportActivity extends AppCompatActivity {
 
@@ -114,17 +127,17 @@ public class UploadReportActivity extends AppCompatActivity {
         // Upload to backend
         uploadReportToBackend(name, date);
     }
-    
+
     private void uploadReportToBackend(String title, String date) {
-        // Get patient ID
+        // Get patient ID using TokenManager
         TokenManager tokenManager = TokenManager.getInstance(this);
         String patientId = tokenManager.getUserId();
-        
+
         if (patientId == null) {
             Toast.makeText(this, "Please login again", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         try {
             // Read file from URI
             android.content.ContentResolver resolver = getContentResolver();
@@ -133,48 +146,39 @@ public class UploadReportActivity extends AppCompatActivity {
                 Toast.makeText(this, "Could not read file", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             java.io.FileInputStream fis = new java.io.FileInputStream(pfd.getFileDescriptor());
             byte[] fileBytes = new byte[(int)pfd.getStatSize()];
             fis.read(fileBytes);
             fis.close();
             pfd.close();
-            
+
             // Get file name and MIME type
             String fileName = "report_" + System.currentTimeMillis() + ".pdf";
             String mimeType = resolver.getType(selectedFileUri);
             if (mimeType == null) mimeType = "application/pdf";
-            
+
             // Create multipart request body
             okhttp3.RequestBody patientIdBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("text/plain"), patientId);
             okhttp3.RequestBody titleBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("text/plain"), title);
             okhttp3.RequestBody descriptionBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("text/plain"), "Uploaded on " + date);
-            
+
             okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse(mimeType), fileBytes);
             okhttp3.MultipartBody.Part filePart = okhttp3.MultipartBody.Part.createFormData("file", fileName, fileBody);
-            
+
             // Upload to backend
-            com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-            retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model
-.Report>> call =
-                apiService.createReport(patientIdBody, titleBody, descriptionBody, filePart);
-            
+            ApiService apiService = ApiClient.getApiService(this);
+            Call<ApiResponse<Report>> call = apiService.createReport(patientIdBody, titleBody, descriptionBody, filePart);
+
             submitButton.setEnabled(false);
             submitButton.setText("Uploading...");
-            
-            call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Report>>() {
+
+            call.enqueue(new Callback<ApiResponse<Report>>() {
                 @Override
-                public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Report>> call,
-                                     retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Report>> response) {
+                public void onResponse(Call<ApiResponse<Report>> call, Response<ApiResponse<Report>> response) {
                     submitButton.setEnabled(true);
                     submitButton.setText("Submit");
-                    
+
                     if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                         Toast.makeText(UploadReportActivity.this, "Report uploaded successfully! Doctor will be notified.", Toast.LENGTH_LONG).show();
                         finish();
@@ -186,11 +190,9 @@ public class UploadReportActivity extends AppCompatActivity {
                         Toast.makeText(UploadReportActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                     }
                 }
-                
+
                 @Override
-                public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Report>> call, Throwable t) {
+                public void onFailure(Call<ApiResponse<Report>> call, Throwable t) {
                     submitButton.setEnabled(true);
                     submitButton.setText("Submit");
                     Toast.makeText(UploadReportActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
@@ -201,9 +203,3 @@ public class UploadReportActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
-
-
-

@@ -20,6 +20,7 @@ import com.example.myrajourney.admin.users.CreateDoctorActivity;
 import com.example.myrajourney.admin.users.EditPatientActivity;
 import com.example.myrajourney.admin.users.EditDoctorActivity;
 import com.example.myrajourney.admin.assignments.AssignPatientToDoctorActivity;
+// Removed unused DoctorDashboardActivity import
 import com.example.myrajourney.doctor.patients.AllPatientsActivity;
 // ---------------------
 
@@ -138,7 +139,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         builder.setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // FIX: Removed parameter. sessionManager.logout() takes no arguments.
+                    // ✅ FIXED: Removed arguments. sessionManager.logout() takes NO parameters now.
                     sessionManager.logout();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();

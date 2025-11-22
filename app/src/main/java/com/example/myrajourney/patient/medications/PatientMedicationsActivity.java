@@ -94,15 +94,15 @@ public class PatientMedicationsActivity extends AppCompatActivity {
                     if (medications != null && !medications.isEmpty()) {
                         // Convert API medications to local MedicationSchedule
                         for (Medication med : medications) {
-                            // Check status instead of isActive() (based on your Medication model)
-                            if ("Ongoing".equalsIgnoreCase(med.getStatus()) || "Active".equalsIgnoreCase(med.getStatus())) {
+                            // Check status
+                            if (med.isActive()) {
                                 String time = parseTimeFromFrequency(med.getFrequency());
 
                                 // Check if completed locally today
                                 boolean isCompleted = checkLocalCompletionStatus(med.getName());
 
                                 todayMedications.add(new MedicationSchedule(
-                                        med.getName(), // Fixed: getName() instead of getMedicationName()
+                                        med.getName(),
                                         med.getDosage(),
                                         time,
                                         isCompleted
@@ -274,9 +274,12 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         }
 
         ApiService apiService = ApiClient.getApiService(this);
-        MedicationLogRequest request = new MedicationLogRequest();
-        request.setPatientMedicationId(medicationId);
-        request.setTakenAt(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+
+        // ✅ FIXED: Use the correct constructor and convert ID to String
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        MedicationLogRequest request = new MedicationLogRequest(String.valueOf(medicationId), timestamp);
+
+        // Optional setters if needed by your API logic, but constructor handles essentials
         request.setDosage(dosage);
         request.setStatus("TAKEN");
 
@@ -286,11 +289,16 @@ public class PatientMedicationsActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ApiResponse<MedicationLog>> call, Response<ApiResponse<MedicationLog>> response) {
                 // Success logging
+                if (response.isSuccessful()) {
+                    Log.d("MedicationLog", "Successfully logged medication");
+                } else {
+                    Log.e("MedicationLog", "Failed to log medication: " + response.message());
+                }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<MedicationLog>> call, Throwable t) {
-                // Log failure logic
+                Log.e("MedicationLog", "Network error logging medication", t);
             }
         });
     }

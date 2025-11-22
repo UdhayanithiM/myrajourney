@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myrajourney.core.navigation.NavigationManager;
 import com.example.myrajourney.core.session.SessionManager;
+import com.example.myrajourney.R;
 
 public class SplashActivity extends AppCompatActivity {
 

@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class MedicationLogRequest {
     @SerializedName("patient_medication_id")
-    private int patientMedicationId;
+    private String patientMedicationId;
 
     @SerializedName("taken_at")
     private String takenAt;
@@ -15,7 +15,14 @@ public class MedicationLogRequest {
     @SerializedName("status")
     private String status;
 
-    public void setPatientMedicationId(int patientMedicationId) {
+    // ✅ Fixed: Added constructor matching PatientRepository usage
+    public MedicationLogRequest(String patientMedicationId, String takenAt) {
+        this.patientMedicationId = patientMedicationId;
+        this.takenAt = takenAt;
+        this.status = "Taken"; // Default status
+    }
+
+    public void setPatientMedicationId(String patientMedicationId) {
         this.patientMedicationId = patientMedicationId;
     }
 

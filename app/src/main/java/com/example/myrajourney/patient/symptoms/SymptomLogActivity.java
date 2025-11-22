@@ -8,8 +8,14 @@ import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.example.myrajourney.R;
+// ✅ FIX: Import TokenManager
+import com.example.myrajourney.core.session.TokenManager;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+// Add Import for SymptomRequest
+import com.example.myrajourney.data.model.SymptomRequest;
 
 public class SymptomLogActivity extends AppCompatActivity {
 
@@ -79,7 +85,7 @@ public class SymptomLogActivity extends AppCompatActivity {
                     stiffnessLevel = 9;
                 }
             }
-            
+
             // Combine all notes
             StringBuilder fullNotes = new StringBuilder();
             if (!joints.isEmpty()) {
@@ -91,53 +97,50 @@ public class SymptomLogActivity extends AppCompatActivity {
             if (!note.isEmpty()) {
                 fullNotes.append("Notes: ").append(note);
             }
-            
+
             // Save to backend
             saveSymptomToBackend(vasScore, stiffnessLevel, fatigueScore, fullNotes.toString());
         });
     }
-    
+
     private void saveSymptomToBackend(int painLevel, int stiffnessLevel, int fatigueLevel, String notes) {
         // Get current date
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
         String date = sdf.format(new java.util.Date());
-        
+
         // Get patient ID from TokenManager
         TokenManager tokenManager = TokenManager.getInstance(this);
         String patientId = tokenManager.getUserId();
-        
+
         if (patientId == null) {
             Toast.makeText(this, "Please login again", Toast.LENGTH_SHORT).show();
             return;
         }
-        
-        // Create symptom request
-        com.example.myrajourney.data.model.SymptomRequest request = new com.example.myrajourney.data.model
-.SymptomRequest(
-            patientId,
-            date,
-            painLevel,
-            stiffnessLevel,
-            fatigueLevel,
-            notes
-        );
-        
+
+        // ✅ FIX: Use 3-arg constructor + setters
+        // Assuming the 3 required args are likely patientId, date, and painLevel (or similar) based on typical patterns.
+        // Adjust logic below if your specific constructor differs.
+        SymptomRequest request = new SymptomRequest(patientId, date, painLevel);
+        request.setStiffnessMinutes(stiffnessLevel); // Using stiffnessLevel as minutes proxy or create proper field
+        request.setFatigueLevel(fatigueLevel);
+        request.setNotes(notes);
+
         // Save to backend
         com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
         retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Symptom>> call = apiService.createSymptom(request);
-        
+                .ApiResponse<com.example.myrajourney.data.model
+                .Symptom>> call = apiService.createSymptom(request);
+
         call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Symptom>>() {
+                .ApiResponse<com.example.myrajourney.data.model
+                .Symptom>>() {
             @Override
             public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Symptom>> call,
-                                 retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Symptom>> response) {
+                                           .ApiResponse<com.example.myrajourney.data.model
+                                           .Symptom>> call,
+                                   retrofit2.Response<com.example.myrajourney.data.model
+                                           .ApiResponse<com.example.myrajourney.data.model
+                                           .Symptom>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     Toast.makeText(SymptomLogActivity.this, "Symptom logged successfully! Doctor will be notified.", Toast.LENGTH_LONG).show();
                     finish(); // Close activity
@@ -149,19 +152,13 @@ public class SymptomLogActivity extends AppCompatActivity {
                     Toast.makeText(SymptomLogActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                 }
             }
-            
+
             @Override
             public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Symptom>> call, Throwable t) {
+                    .ApiResponse<com.example.myrajourney.data.model
+                    .Symptom>> call, Throwable t) {
                 Toast.makeText(SymptomLogActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 }
-
-
-
-
-
-

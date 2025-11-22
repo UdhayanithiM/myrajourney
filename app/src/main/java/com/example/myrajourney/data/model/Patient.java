@@ -10,11 +10,22 @@ public class Patient {
     private Integer assignedDoctorId; // Can be null if not assigned
     private String profileImageUrl;
 
+    // ✅ Added field for local image resource (for UI compatibility)
+    private int imageResId;
+
     // Default constructor
     public Patient() {
     }
 
-    // Constructor for basic details
+    // ✅ NEW Constructor matching DoctorDashboardActivity usage
+    public Patient(String name, String email, int imageResId) {
+        this.name = name;
+        this.email = email;
+        this.imageResId = imageResId;
+        this.role = "PATIENT";
+    }
+
+    // Constructor for basic details from API
     public Patient(int id, String name, String email, String age) {
         this.id = id;
         this.name = name;
@@ -97,6 +108,15 @@ public class Patient {
 
     public void setProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    // ✅ Getter and Setter for imageResId
+    public int getImageResId() {
+        return imageResId;
+    }
+
+    public void setImageResId(int imageResId) {
+        this.imageResId = imageResId;
     }
 
     // Helper to check if assigned

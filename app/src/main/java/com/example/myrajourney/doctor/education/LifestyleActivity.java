@@ -6,6 +6,7 @@ import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.example.myrajourney.R;
 
 public class LifestyleActivity extends AppCompatActivity {
 

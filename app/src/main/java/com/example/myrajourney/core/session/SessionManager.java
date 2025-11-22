@@ -62,6 +62,7 @@ public class SessionManager {
     }
 
     // --- LOGOUT ---
+    // ✅ Corrected: No parameters needed. Clears session generically.
     public void logout() {
         boolean onboard = isOnboardingCompleted();
 
