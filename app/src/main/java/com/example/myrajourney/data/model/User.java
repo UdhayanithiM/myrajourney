@@ -18,12 +18,21 @@ public class User {
     @SerializedName("assigned_doctor_id")
     private Integer assignedDoctorId;
 
-    // ✅ ADDED: Missing Phone and Address fields
     @SerializedName("phone")
     private String phone;
 
     @SerializedName("address")
     private String address;
+
+    // ✅ ADDED: Missing Age, Gender, and Profile Image fields
+    @SerializedName("age")
+    private String age;
+
+    @SerializedName("gender")
+    private String gender;
+
+    @SerializedName("profile_image")
+    private String profileImage;
 
     // --- Getters ---
     public int getId() { return id; }
@@ -32,10 +41,13 @@ public class User {
     public String getEmail() { return email; }
     public String getRole() { return role; }
     public Integer getAssignedDoctorId() { return assignedDoctorId; }
-
-    // ✅ ADDED: Getters for Phone and Address
     public String getPhone() { return phone; }
     public String getAddress() { return address; }
+
+    // ✅ ADDED: Getters for new fields
+    public String getAge() { return age; }
+    public String getGender() { return gender; }
+    public String getProfileImage() { return profileImage; }
 
     // --- Setters ---
     public void setId(int id) { this.id = id; }
@@ -43,8 +55,11 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public void setRole(String role) { this.role = role; }
     public void setAssignedDoctorId(Integer assignedDoctorId) { this.assignedDoctorId = assignedDoctorId; }
-
-    // ✅ ADDED: Setters for Phone and Address
     public void setPhone(String phone) { this.phone = phone; }
     public void setAddress(String address) { this.address = address; }
+
+    // ✅ ADDED: Setters for new fields
+    public void setAge(String age) { this.age = age; }
+    public void setGender(String gender) { this.gender = gender; }
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
 }

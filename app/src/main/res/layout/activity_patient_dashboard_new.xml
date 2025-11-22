@@ -36,9 +36,9 @@
                 android:src="@drawable/ic_menu"
                 android:contentDescription="Menu"
                 android:background="@drawable/circle_background"
-                android:tint="?attr/colorOnPrimary"
                 android:padding="12dp"
-                android:elevation="4dp"/>
+                android:elevation="4dp"
+                app:tint="?attr/colorOnPrimary" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -72,9 +72,9 @@
                 android:layout_marginStart="16dp"
                 android:src="@android:drawable/ic_menu_send"
                 android:contentDescription="Logout"
-                android:tint="@color/white"
                 android:background="@drawable/circle_background"
-                android:padding="8dp" />
+                android:padding="8dp"
+                app:tint="@color/white" />
         </LinearLayout>
 
         <!-- Health Status Card -->
@@ -682,7 +682,7 @@
                 android:layout_marginEnd="8dp"
                 android:scaleType="center"
                 android:src="@drawable/ic_symptom_report"
-                android:tint="#1976D2"/>
+                 app:tint="#1976D2" />
 
             <ImageButton
                 android:id="@+id/medicationsBtn"
@@ -694,7 +694,7 @@
                 android:layout_marginEnd="8dp"
                 android:scaleType="center"
                 android:src="@drawable/ic_pill"
-                android:tint="#F57C00"/>
+                app:tint="#F57C00" />
 
             <ImageButton
                 android:id="@+id/rehabBtn"
@@ -705,7 +705,7 @@
                 android:layout_marginStart="8dp"
                 android:scaleType="center"
                 android:src="@drawable/ic_dumbbell"
-                android:tint="#388E3C"/>
+                app:tint="#388E3C" />
         </LinearLayout>
 
     </LinearLayout>

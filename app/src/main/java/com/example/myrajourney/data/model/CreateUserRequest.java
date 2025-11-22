@@ -16,7 +16,7 @@ public class CreateUserRequest {
     @SerializedName("role")
     private String role;
 
-    @SerializedName("phone") // Assuming 'phone' matches backend key for mobile
+    @SerializedName("phone")
     private String mobile;
 
     @SerializedName("address")
@@ -25,12 +25,15 @@ public class CreateUserRequest {
     @SerializedName("specialization")
     private String specialization;
 
+    // ✅ ADDED: Age field is required for Patients
+    @SerializedName("age")
+    private String age;
+
     // Default Constructor
     public CreateUserRequest() {
     }
 
     // Constructor matching CreateDoctorActivity usage
-    // Arguments: name, email, mobile, role, password, address
     public CreateUserRequest(String name, String email, String mobile, String role, String password, String address) {
         this.name = name;
         this.email = email;
@@ -61,4 +64,8 @@ public class CreateUserRequest {
 
     public String getSpecialization() { return specialization; }
     public void setSpecialization(String specialization) { this.specialization = specialization; }
+
+    // ✅ ADDED: Getter and Setter for Age
+    public String getAge() { return age; }
+    public void setAge(String age) { this.age = age; }
 }

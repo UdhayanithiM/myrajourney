@@ -30,9 +30,7 @@ public class CreatePatientActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_patient);
 
@@ -52,7 +50,6 @@ public class CreatePatientActivity extends AppCompatActivity {
 
         btnRegisterPatient = findViewById(R.id.btnRegisterPatient);
 
-        // Handle Register Button
         btnRegisterPatient.setOnClickListener(v -> createPatient());
     }
 
@@ -68,14 +65,11 @@ public class CreatePatientActivity extends AppCompatActivity {
             return;
         }
 
-        // Disable button
         btnRegisterPatient.setEnabled(false);
         btnRegisterPatient.setText("Creating...");
 
-        // Create patient via backend API
         ApiService apiService = ApiClient.getApiService(this);
 
-        // Create request using setters
         CreateUserRequest request = new CreateUserRequest();
         request.setName(name);
         request.setEmail(email);
@@ -83,6 +77,9 @@ public class CreatePatientActivity extends AppCompatActivity {
         request.setRole("PATIENT");
         request.setPassword("welcome123");
         request.setAddress(address);
+
+        // ✅ FIXED: Added this line to actually send the age
+        request.setAge(age);
 
         Call<ApiResponse<User>> call = apiService.createUser(request);
 
@@ -101,35 +98,19 @@ public class CreatePatientActivity extends AppCompatActivity {
 
                         Toast.makeText(CreatePatientActivity.this, "Patient Registered Successfully!", Toast.LENGTH_LONG).show();
 
-                        // Clear fields
                         etName.setText("");
                         etMobile.setText("");
                         etAge.setText("");
                         etEmail.setText("");
                         etAddress.setText("");
-                        etEmail.setError(null); // Clear any previous error
+                        etEmail.setError(null);
                     }
                 } else {
-                    // ---------------------------------------------------------
-                    // ✅ IMPROVED ERROR HANDLING FOR DUPLICATE EMAILS
-                    // ---------------------------------------------------------
                     String errorMsg = "Registration failed";
-                    String errorCode = "";
-
                     if (response.body() != null && response.body().getError() != null) {
                         errorMsg = response.body().getError().getMessage();
-                        errorCode = response.body().getError().getCode();
                     }
-
-                    // Check for 409 Conflict or specific error code
-                    if (response.code() == 409 || "EMAIL_TAKEN".equalsIgnoreCase(errorCode)) {
-                        etEmail.setError("This email is already registered");
-                        etEmail.requestFocus();
-                        Toast.makeText(CreatePatientActivity.this, "Email already exists! Use a different one.", Toast.LENGTH_LONG).show();
-                    } else {
-                        // Generic error
-                        Toast.makeText(CreatePatientActivity.this, errorMsg, Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(CreatePatientActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
 

@@ -4,7 +4,7 @@ public class Patient {
     private int id;
     private String name;
     private String email;
-    private String age;
+    private String age; // Changed to String to handle "N/A" or nulls easily
     private String gender;
     private String role; // "PATIENT"
     private Integer assignedDoctorId; // Can be null if not assigned
@@ -15,22 +15,26 @@ public class Patient {
 
     // Default constructor
     public Patient() {
+        this.role = "PATIENT";
+        this.age = "N/A"; // Prevent null pointer issues
     }
 
-    // ✅ NEW Constructor matching DoctorDashboardActivity usage
+    // ✅ Constructor matching DoctorDashboardActivity usage
     public Patient(String name, String email, int imageResId) {
         this.name = name;
         this.email = email;
         this.imageResId = imageResId;
         this.role = "PATIENT";
+        this.age = "N/A"; // Default age for dashboard dummy data
     }
 
-    // Constructor for basic details from API
+    // ✅ Constructor for basic details from API (Used in AllPatientsActivity)
     public Patient(int id, String name, String email, String age) {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.age = age;
+        // Robust check: If API sends null, set to "N/A"
+        this.age = (age != null && !age.isEmpty()) ? age : "N/A";
         this.role = "PATIENT";
     }
 
@@ -39,13 +43,14 @@ public class Patient {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.age = age;
+        this.age = (age != null && !age.isEmpty()) ? age : "N/A";
         this.gender = gender;
         this.role = role;
         this.assignedDoctorId = assignedDoctorId;
     }
 
-    // Getters and Setters
+    // --- Getters and Setters ---
+
     public int getId() {
         return id;
     }
@@ -75,7 +80,7 @@ public class Patient {
     }
 
     public void setAge(String age) {
-        this.age = age;
+        this.age = (age != null) ? age : "N/A";
     }
 
     public String getGender() {

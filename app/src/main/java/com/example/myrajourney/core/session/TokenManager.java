@@ -33,7 +33,7 @@ public class TokenManager {
             );
         } catch (GeneralSecurityException | IOException e) {
             Log.e("TokenManager", "Error initializing secure prefs", e);
-            // Fallback to standard prefs only if encryption fails (rare)
+            // Fallback to standard prefs only if encryption fails
             prefs = context.getSharedPreferences(PREF_NAME_SECURE, Context.MODE_PRIVATE);
         }
     }
@@ -73,8 +73,19 @@ public class TokenManager {
         return prefs.getString(KEY_USER_ROLE, null);
     }
 
-    public void clear() {
+    /**
+     * Clears all session data.
+     * Use this when logging out.
+     */
+    public void clearSession() {
         prefs.edit().clear().apply();
+    }
+
+    /**
+     * Legacy method alias for clearSession()
+     */
+    public void clear() {
+        clearSession();
     }
 
     public boolean hasToken() {
@@ -82,9 +93,3 @@ public class TokenManager {
         return token != null && !token.isEmpty();
     }
 }
-
-
-
-
-
-

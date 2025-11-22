@@ -63,7 +63,6 @@ public interface ApiService {
     @GET("auth/me")
     Call<ApiResponse<UserResponse>> getCurrentUser();
 
-    // ✅ FIXED: Added the missing updateProfile method here
     @PUT("users/me")
     Call<ApiResponse<User>> updateProfile(@Body Map<String, String> fields);
 
@@ -168,4 +167,8 @@ public interface ApiService {
 
     @GET("admin/doctors")
     Call<ApiResponse<List<Doctor>>> getAllDoctors();
+
+    // ✅ ADDED: Generic user fetch (Requires backend support for GET /api/v1/users)
+    @GET("users")
+    Call<ApiResponse<List<User>>> getAllUsers();
 }

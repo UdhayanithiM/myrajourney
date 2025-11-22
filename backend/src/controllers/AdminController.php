@@ -16,7 +16,6 @@ class AdminController
        $this->users = new UserModel();
     }
 
-    // Create user (patient/doctor) - only admins can do this
     public function createUser(): void
     {
        $auth = $_SERVER['auth'] ?? [];
@@ -29,33 +28,26 @@ class AdminController
 
        $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
-       // Clean input
        $email = trim(strtolower($body['email'] ?? ''));
        $password = (string)($body['password'] ?? '');
        $userRole = in_array($body['role'] ?? 'PATIENT', ['PATIENT','DOCTOR']) ? $body['role'] : 'PATIENT';
        $name = $body['name'] ?? null;
-
-       // ✅ FIXED: Check both 'phone' AND 'mobile' keys (Android uses 'mobile')
        $phone = $body['phone'] ?? $body['mobile'] ?? null;
 
-       // Validation
        if (!$email || strlen($password) < 6) {
           Response::json(['success'=>false,'error'=>['code'=>'VALIDATION','message'=>'Invalid email or password (min 6 chars)']], 422);
           return;
        }
 
-       // Check unique email
        if ($this->users->findByEmail($email)) {
           Response::json(['success'=>false,'error'=>['code'=>'EMAIL_TAKEN','message'=>'Email already registered']], 409);
           return;
        }
 
-       // --- START TRANSACTION ---
        $db = DB::conn();
        try {
            $db->beginTransaction();
 
-           // 1. Create Base User
            $uid = $this->users->create([
               'email'=>$email,
               'password_hash'=>password_hash($password, PASSWORD_BCRYPT),
@@ -64,19 +56,20 @@ class AdminController
               'phone'=>$phone,
            ]);
 
-           // 2. Create Role Specific Profile
            if ($userRole === 'PATIENT') {
               $assignedDoctorId = isset($body['assigned_doctor_id']) ? (int)$body['assigned_doctor_id'] : null;
-
-              // ✅ FIXED: Ensure address is captured
               $address = $body['address'] ?? null;
+              $age = $body['age'] ?? null;
+              $gender = $body['gender'] ?? null;
 
-              // Insert into patients table
-              $stmt = $db->prepare('INSERT INTO patients (id, assigned_doctor_id, address, created_at, updated_at) VALUES (:id, :doctor_id, :address, NOW(), NOW())');
+              // Insert with age and gender
+              $stmt = $db->prepare('INSERT INTO patients (id, assigned_doctor_id, address, age, gender, created_at, updated_at) VALUES (:id, :doctor_id, :address, :age, :gender, NOW(), NOW())');
               $stmt->execute([
                   ':id' => $uid,
                   ':doctor_id' => $assignedDoctorId,
-                  ':address' => $address
+                  ':address' => $address,
+                  ':age' => $age,
+                  ':gender' => $gender
               ]);
            }
 
@@ -88,7 +81,6 @@ class AdminController
               ]);
            }
 
-           // 3. Commit changes if all good
            $db->commit();
 
            Response::json(['success'=>true,'data'=>[
@@ -99,11 +91,8 @@ class AdminController
            ]], 201);
 
        } catch (\Throwable $e) {
-           // 4. Rollback if ANYTHING fails
            $db->rollBack();
-
            error_log("Create User Failed: " . $e->getMessage());
-
            Response::json([
                'success'=>false,
                'error'=>[
@@ -114,7 +103,34 @@ class AdminController
        }
     }
 
-    // Assign patient to doctor
+    public function listUsers(): void
+    {
+       $auth = $_SERVER['auth'] ?? [];
+       $role = $auth['role'] ?? '';
+
+       if ($role !== 'ADMIN') {
+          Response::json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Access denied']], 403);
+          return;
+       }
+
+       $db = DB::conn();
+       // Safe query now that columns exist (after you run the script)
+       $stmt = $db->prepare("
+           SELECT
+               u.id, u.name, u.email, u.role, u.phone,
+               p.age, p.gender, p.address, p.assigned_doctor_id,
+               d.specialization
+           FROM users u
+           LEFT JOIN patients p ON u.id = p.id
+           LEFT JOIN doctors d ON u.id = d.id
+           ORDER BY u.created_at DESC
+       ");
+       $stmt->execute();
+       $users = $stmt->fetchAll();
+
+       Response::json(['success'=>true,'data'=>$users]);
+    }
+
     public function assignPatientToDoctor(): void
     {
        $auth = $_SERVER['auth'] ?? [];
@@ -136,7 +152,6 @@ class AdminController
 
        $db = DB::conn();
 
-       // Verify patient exists
        $stmt = $db->prepare('SELECT id FROM users WHERE id = :id AND role = "PATIENT"');
        $stmt->execute([':id'=>$patientId]);
        if (!$stmt->fetch()) {
@@ -144,7 +159,6 @@ class AdminController
           return;
        }
 
-       // Verify doctor exists if provided
        if ($doctorId !== null) {
           $stmt = $db->prepare('SELECT id FROM users WHERE id = :id AND role = "DOCTOR"');
           $stmt->execute([':id'=>$doctorId]);
@@ -154,14 +168,12 @@ class AdminController
           }
        }
 
-       // Update patient assignment
        $stmt = $db->prepare('UPDATE patients SET assigned_doctor_id = :doctor_id, updated_at = NOW() WHERE id = :patient_id');
        $stmt->execute([':doctor_id'=>$doctorId, ':patient_id'=>$patientId]);
 
        Response::json(['success'=>true,'message'=>'Patient assigned successfully']);
     }
 
-    // Get all doctors (for assignment dropdown)
     public function listDoctors(): void
     {
        $auth = $_SERVER['auth'] ?? [];

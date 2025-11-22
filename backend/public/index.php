@@ -30,11 +30,15 @@ Src\Config\Cors::allow();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+
+// --- ROUTER LOGIC (Compatible with XAMPP & php -S) ---
 // Strip the base path if present (e.g., /backend/public)
-// DOCUMENT_ROOT is usually C:\xampp\htdocs, __DIR__ is C:\xampp\htdocs\backend\public
 $docRoot = str_replace('\\', '/', rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/\\'));
 $scriptDir = str_replace('\\', '/', rtrim(__DIR__, '/\\'));
 $basePath = str_replace($docRoot, '', $scriptDir);
+
+// If running via php -S, basePath will be empty (Correct)
+// If running via XAMPP, basePath will be /backend/public (Correct)
 if ($basePath && strpos($uri, $basePath) === 0) {
 	$uri = substr($uri, strlen($basePath));
 }
@@ -44,17 +48,14 @@ if ($uri === '' || ($uri[0] !== '/')) {
 }
 
 // Exclude test files and non-API files from routing
-// But allow specific utility files
 $allowedFiles = ['admin-api.php', 'doctor-patients.php', 'clear-cache.php'];
 if (in_array(basename($uri), $allowedFiles)) {
-	// Let these files execute directly
-	return;
+	return; // Let these execute directly
 }
 
-// If the request is not for an API endpoint and the file exists, let Apache serve it
+// Handle static files (images, etc) if they exist
 $requestedFile = $docRoot . $basePath . $uri;
 if (strpos($uri, '/api/v1/') !== 0) {
-	// Check if it's a test file or other non-API file
 	$testFiles = ['test-', 'debug-', 'api-info.php'];
 	$isTestFile = false;
 	foreach ($testFiles as $prefix) {
@@ -63,8 +64,7 @@ if (strpos($uri, '/api/v1/') !== 0) {
 			break;
 		}
 	}
-	
-	// If it's a test file or the actual file exists, return 404 (let Apache handle it)
+
 	if ($isTestFile || file_exists($requestedFile)) {
 		http_response_code(404);
 		Response::json([
@@ -78,16 +78,13 @@ if (strpos($uri, '/api/v1/') !== 0) {
 	}
 }
 
-// Debug: uncomment to see what URI is being processed
-// error_log("Method: $method, URI: $uri");
-
-// Simple router
+// Simple router helper
 function route(string $method, string $path): bool {
 	global $uri;
 	return $_SERVER['REQUEST_METHOD'] === $method && $uri === $path;
 }
 
-// Auth
+// --- AUTH ROUTES ---
 if (route('POST', '/api/v1/auth/register')) {
 	(new AuthController())->register();
 	exit;
@@ -101,7 +98,6 @@ if (route('GET', '/api/v1/auth/me')) {
 	(new AuthController())->me();
 	exit;
 }
-// Forgot/Reset Password
 if (route('POST', '/api/v1/auth/forgot-password')) {
     (new AuthController())->forgotPassword();
     exit;
@@ -116,14 +112,21 @@ if (route('POST', '/api/v1/auth/change-password')) {
     exit;
 }
 
-// User self update (settings stub)
+// --- USER ROUTES ---
 if (route('PUT', '/api/v1/users/me')) {
 	Auth::requireAuth();
 	(new UserController())->updateMe();
 	exit;
 }
+// ✅ ADDED: Generic User List (Matches ApiService.getAllUsers)
+if (route('GET', '/api/v1/users')) {
+    Auth::requireAuth();
+    // Maps to AdminController->listUsers if it exists, or use listAll logic
+    (new AdminController())->listUsers();
+    exit;
+}
 
-// Patient
+// --- PATIENT ROUTES ---
 if (route('GET', '/api/v1/patients/me/overview')) {
 	Auth::requireAuth();
 	(new PatientController())->overviewMe();
@@ -135,7 +138,7 @@ if (route('GET', '/api/v1/patients')) {
 	exit;
 }
 
-// Admin
+// --- ADMIN ROUTES ---
 if (route('GET', '/api/v1/admin/test')) {
 	Response::json(['success'=>true,'message'=>'Admin routes working','uri'=>$uri]);
 	exit;
@@ -156,14 +159,14 @@ if (route('GET', '/api/v1/admin/doctors')) {
 	exit;
 }
 
-// Doctor
+// --- DOCTOR ROUTES ---
 if (route('GET', '/api/v1/doctor/overview')) {
 	Auth::requireAuth();
 	(new DoctorController())->overview();
 	exit;
 }
 
-// Appointments
+// --- APPOINTMENT ROUTES ---
 if (route('GET', '/api/v1/appointments')) {
 	Auth::requireAuth();
 	(new AppointmentController())->list();
@@ -180,7 +183,7 @@ if (preg_match('#^/api/v1/appointments/(\d+)$#', $uri, $m) && $_SERVER['REQUEST_
 	exit;
 }
 
-// Reports
+// --- REPORT ROUTES ---
 if (route('GET', '/api/v1/reports')) {
 	Auth::requireAuth();
 	(new ReportController())->list();
@@ -208,7 +211,7 @@ if (preg_match('#^/api/v1/reports/(\d+)/notes$#', $uri, $m) && $_SERVER['REQUEST
 	exit;
 }
 
-// Medications
+// --- MEDICATION ROUTES ---
 if (route('GET','/api/v1/patient-medications')) {
     Auth::requireAuth();
     (new MedicationController())->listForPatient();
@@ -230,7 +233,7 @@ if (route('POST','/api/v1/medication-logs')) {
     exit;
 }
 
-// Rehab
+// --- REHAB ROUTES ---
 if (route('GET','/api/v1/rehab-plans')) {
     Auth::requireAuth();
     (new RehabController())->listForPatient();
@@ -247,7 +250,7 @@ if (preg_match('#^/api/v1/rehab-plans/(\d+)$#',$uri,$m) && $_SERVER['REQUEST_MET
     exit;
 }
 
-// Notifications
+// --- NOTIFICATION ROUTES ---
 if (route('GET','/api/v1/notifications')) {
     Auth::requireAuth();
     (new NotificationController())->listMine();
@@ -259,7 +262,7 @@ if (preg_match('#^/api/v1/notifications/(\d+)/read$#',$uri,$m) && $_SERVER['REQU
     exit;
 }
 
-// Education
+// --- EDUCATION ROUTES ---
 if (route('GET','/api/v1/education/articles')) {
     (new EducationController())->list();
     exit;
@@ -269,7 +272,7 @@ if (preg_match('#^/api/v1/education/articles/([A-Za-z0-9_-]+)$#',$uri,$m) && $_S
     exit;
 }
 
-// Symptoms
+// --- SYMPTOM ROUTES ---
 if (route('GET','/api/v1/symptoms')) {
     Auth::requireAuth();
     (new SymptomController())->list();
@@ -281,7 +284,7 @@ if (route('POST','/api/v1/symptoms')) {
     exit;
 }
 
-// Metrics
+// --- METRIC ROUTES ---
 if (route('GET','/api/v1/health-metrics')) {
     Auth::requireAuth();
     (new MetricController())->list();
@@ -293,7 +296,7 @@ if (route('POST','/api/v1/health-metrics')) {
     exit;
 }
 
-// Settings
+// --- SETTINGS ROUTES ---
 if (route('GET','/api/v1/settings')) {
     Auth::requireAuth();
     (new SettingsController())->getMine();
@@ -305,6 +308,7 @@ if (route('PUT','/api/v1/settings')) {
     exit;
 }
 
+// --- 404 HANDLER ---
 Response::json([
 	'success' => false,
 	'error' => [
@@ -312,5 +316,3 @@ Response::json([
 		'message' => 'Endpoint not found'
 	]
 ], 404);
-
-

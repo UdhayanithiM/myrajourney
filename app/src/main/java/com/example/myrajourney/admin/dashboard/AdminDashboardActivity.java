@@ -3,26 +3,27 @@ package com.example.myrajourney.admin.dashboard;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.SearchView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.myrajourney.R;
+import com.example.myrajourney.admin.assignments.AssignPatientToDoctorActivity;
+import com.example.myrajourney.admin.users.CreateDoctorActivity;
+import com.example.myrajourney.admin.users.CreatePatientActivity;
+import com.example.myrajourney.admin.users.EditDoctorActivity;
+import com.example.myrajourney.admin.users.EditPatientActivity;
+import com.example.myrajourney.auth.LoginActivity;
 import com.example.myrajourney.core.session.SessionManager;
 import com.example.myrajourney.core.ui.ThemeManager;
-import com.example.myrajourney.auth.LoginActivity;
-import com.example.myrajourney.admin.users.CreatePatientActivity;
-import com.example.myrajourney.admin.users.CreateDoctorActivity;
-import com.example.myrajourney.admin.users.EditPatientActivity;
-import com.example.myrajourney.admin.users.EditDoctorActivity;
-import com.example.myrajourney.admin.assignments.AssignPatientToDoctorActivity;
 import com.example.myrajourney.doctor.patients.AllPatientsActivity;
 import com.google.android.material.navigation.NavigationView;
 
@@ -81,9 +82,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Handle Navigation Drawer Item Clicks
         navigationView.setNavigationItemSelectedListener(item -> {
-            // Handle menu clicks here (e.g., Settings, Logout)
-            // int id = item.getItemId();
-            // if (id == R.id.nav_logout) { showLogoutDialog(); }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
@@ -91,8 +89,25 @@ public class AdminDashboardActivity extends AppCompatActivity {
         // Set up Logout
         logoutBtn.setOnClickListener(v -> showLogoutDialog());
 
-        // Set up Buttons (Same as before)
+        // Set up Buttons
         setupButtons();
+
+        // --- BACK PRESS DISPATCHER LOGIC ---
+        // This replaces the deprecated onBackPressed()
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // If drawer is open, close it
+                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    // CRITICAL FIX: Prevent going back to Login Activity
+                    // finishAffinity() closes the entire app stack, exiting the app.
+                    // This ensures the user doesn't accidentally land back on the login screen.
+                    finishAffinity();
+                }
+            }
+        });
     }
 
     private void setupButtons() {
@@ -147,19 +162,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     sessionManager.logout();
-                    startActivity(new Intent(this, LoginActivity.class));
+                    // Clear task ensures we can't go back to AdminDashboard after logout
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                     finish();
                 })
                 .setNegativeButton("No", null)
                 .show();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 }
