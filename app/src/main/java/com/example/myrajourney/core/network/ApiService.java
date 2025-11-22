@@ -1,7 +1,8 @@
 package com.example.myrajourney.core.network;
+
 import com.example.myrajourney.data.model.ActiveRequest;
 import com.example.myrajourney.data.model.ApiResponse;
-import com.example.myrajourney.data.model.Appointment; // ✅ Added missing import
+import com.example.myrajourney.data.model.Appointment;
 import com.example.myrajourney.data.model.AppointmentRequest;
 import com.example.myrajourney.data.model.AuthRequest;
 import com.example.myrajourney.data.model.AuthResponse;
@@ -18,7 +19,6 @@ import com.example.myrajourney.data.model.PatientOverview;
 import com.example.myrajourney.data.model.RehabPlan;
 import com.example.myrajourney.data.model.Report;
 import com.example.myrajourney.data.model.ReportNote;
-import com.example.myrajourney.data.model.ReportRequest; // Unused but kept if needed
 import com.example.myrajourney.data.model.Settings;
 import com.example.myrajourney.data.model.SettingsRequest;
 import com.example.myrajourney.data.model.Symptom;
@@ -62,6 +62,10 @@ public interface ApiService {
 
     @GET("auth/me")
     Call<ApiResponse<UserResponse>> getCurrentUser();
+
+    // ✅ FIXED: Added the missing updateProfile method here
+    @PUT("users/me")
+    Call<ApiResponse<User>> updateProfile(@Body Map<String, String> fields);
 
     // --- Education Endpoints ---
     @GET("education/articles")

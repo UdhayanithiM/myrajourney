@@ -3,14 +3,17 @@ package com.example.myrajourney.admin.dashboard;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.SearchView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
-// --- IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.core.session.SessionManager;
 import com.example.myrajourney.core.ui.ThemeManager;
@@ -20,46 +23,43 @@ import com.example.myrajourney.admin.users.CreateDoctorActivity;
 import com.example.myrajourney.admin.users.EditPatientActivity;
 import com.example.myrajourney.admin.users.EditDoctorActivity;
 import com.example.myrajourney.admin.assignments.AssignPatientToDoctorActivity;
-// Removed unused DoctorDashboardActivity import
 import com.example.myrajourney.doctor.patients.AllPatientsActivity;
-// ---------------------
+import com.google.android.material.navigation.NavigationView;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    // Footer navigation buttons
+    // Views
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private ImageView iconMenu;
     private LinearLayout navUpdatePatient, navUpdateDoctor, navSettings;
-
-    // Top buttons
     private Button btnCreatePatient, btnCreateDoctor, btnAssignPatients, btnViewAllPatients, btnViewAllDoctors;
-
-    // Search bar
     private SearchView searchBar;
-
-    // Logout button
     private ImageView logoutBtn;
 
-    // Session Manager
-    SessionManager sessionManager;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
 
-        // Initialize session manager
         sessionManager = new SessionManager(this);
 
-        // Check if user is logged in
+        // Check login
         if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        // Initialize views
+        // Initialize Drawer
+        drawerLayout = findViewById(R.id.drawerLayout);
+        navigationView = findViewById(R.id.navigationView);
+        iconMenu = findViewById(R.id.iconMenu);
+
+        // Initialize Other Views
         btnCreatePatient = findViewById(R.id.btnCreatePatient);
         btnCreateDoctor = findViewById(R.id.btnCreateDoctor);
         btnAssignPatients = findViewById(R.id.btnAssignPatients);
@@ -71,56 +71,63 @@ public class AdminDashboardActivity extends AppCompatActivity {
         searchBar = findViewById(R.id.searchBar);
         logoutBtn = findViewById(R.id.logoutBtn);
 
-        // Set up logout listener
-        logoutBtn.setOnClickListener(v -> showLogoutDialog());
-
-        // --------- SearchView Listener (dummy for now) ---------
-        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                // You can implement search logic here
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                // You can implement live search logic here
-                return false;
+        // --- DRAWER LOGIC ---
+        // Open drawer when menu icon is clicked
+        iconMenu.setOnClickListener(v -> {
+            if (drawerLayout != null) {
+                drawerLayout.openDrawer(GravityCompat.START);
             }
         });
 
-        // --------- Top buttons: Create Patient / Doctor ---------
+        // Handle Navigation Drawer Item Clicks
+        navigationView.setNavigationItemSelectedListener(item -> {
+            // Handle menu clicks here (e.g., Settings, Logout)
+            // int id = item.getItemId();
+            // if (id == R.id.nav_logout) { showLogoutDialog(); }
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        // Set up Logout
+        logoutBtn.setOnClickListener(v -> showLogoutDialog());
+
+        // Set up Buttons (Same as before)
+        setupButtons();
+    }
+
+    private void setupButtons() {
+        // Create Patient
         btnCreatePatient.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, CreatePatientActivity.class))
         );
 
+        // Create Doctor
         btnCreateDoctor.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, CreateDoctorActivity.class))
         );
 
-        // Assign patients button
+        // Assign Patients
         if (btnAssignPatients != null) {
             btnAssignPatients.setOnClickListener(v ->
                     startActivity(new Intent(AdminDashboardActivity.this, AssignPatientToDoctorActivity.class))
             );
         }
 
-        // View all patients button
+        // View Patients
         if (btnViewAllPatients != null) {
             btnViewAllPatients.setOnClickListener(v ->
                     startActivity(new Intent(AdminDashboardActivity.this, AllPatientsActivity.class))
             );
         }
 
-        // View all doctors button
+        // View Doctors
         if (btnViewAllDoctors != null) {
             btnViewAllDoctors.setOnClickListener(v -> {
-                // Create intent to view all doctors (you can create AllDoctorsActivity later)
                 Toast.makeText(AdminDashboardActivity.this, "View All Doctors - Coming Soon", Toast.LENGTH_SHORT).show();
             });
         }
 
-        // --------- Footer navigation: Update Patient / Doctor / Settings ---------
+        // Footer Nav
         navUpdatePatient.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, EditPatientActivity.class))
         );
@@ -139,12 +146,20 @@ public class AdminDashboardActivity extends AppCompatActivity {
         builder.setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // ✅ FIXED: Removed arguments. sessionManager.logout() takes NO parameters now.
                     sessionManager.logout();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })
                 .setNegativeButton("No", null)
                 .show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 }

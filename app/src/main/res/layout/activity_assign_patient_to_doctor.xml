@@ -21,10 +21,10 @@
             android:layout_height="24dp"
             android:src="@android:drawable/ic_menu_revert"
             android:contentDescription="Back"
-            android:tint="@android:color/white"
             android:clickable="true"
             android:focusable="true"
-            android:onClick="finish"/>
+            android:onClick="finish"
+            app:tint="@android:color/white" />
 
         <TextView
             android:layout_width="0dp"

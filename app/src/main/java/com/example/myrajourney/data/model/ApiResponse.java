@@ -21,17 +21,16 @@ public class ApiResponse<T> {
     public ApiError getError() { return error; }
 
     public static class ApiError {
+        // ✅ FIXED: Changed 'int' to 'String' to handle codes like "EMAIL_TAKEN"
         @SerializedName("code")
-        private int code;
+        private String code;
+
         @SerializedName("message")
         private String message;
+
+        // ✅ ADDED: Missing getter method
+        public String getCode() { return code; }
 
         public String getMessage() { return message; }
     }
 }
-
-
-
-
-
-

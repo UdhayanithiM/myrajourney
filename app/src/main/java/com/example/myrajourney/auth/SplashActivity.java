@@ -25,27 +25,18 @@ public class SplashActivity extends AppCompatActivity {
     private void decide() {
         SessionManager sm = new SessionManager(this);
 
-        // 1 â€” Onboarding
+        // 1. Check Onboarding - If not done, go there first.
         if (!sm.isOnboardingCompleted()) {
             NavigationManager.goToOnboarding(this);
             finish();
             return;
         }
 
-        // 2 â€” Logged in?
-        if (sm.isSessionValid()) {
-            NavigationManager.goToDashboardForRole(this, sm.getRole());
-            finish();
-            return;
-        }
+        // 2. FORCE LOGOUT - This wipes the saved token/user data every single launch.
+        sm.logout();
 
+        // 3. Navigate to Login - User must enter credentials again.
         NavigationManager.goToLogin(this);
         finish();
     }
 }
-
-
-
-
-
-

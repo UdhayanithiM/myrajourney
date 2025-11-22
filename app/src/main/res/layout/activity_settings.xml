@@ -11,7 +11,6 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Title -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
@@ -23,20 +22,20 @@
             android:gravity="center"
             android:layout_marginBottom="24dp"/>
 
-        <!-- Theme Settings Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:elevation="4dp"
-            android:radius="16dp">
+            android:backgroundTint="@color/white"
+            app:cardCornerRadius="16dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp"
-                android:background="@color/white">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -87,20 +86,20 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Account Settings Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:elevation="4dp"
-            android:radius="16dp">
+            android:backgroundTint="@color/white"
+            app:cardCornerRadius="16dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp"
-                android:background="@color/white">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -111,7 +110,6 @@
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="16dp"/>
 
-                <!-- Email -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -126,13 +124,14 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/email"
                     android:inputType="textEmailAddress"
+                    android:focusable="false"
+                    android:clickable="false"
                     android:textColorHint="@color/text_hint"
                     android:textColor="@color/text_primary"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
 
-                <!-- Phone -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -153,7 +152,6 @@
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
 
-                <!-- Address -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -176,11 +174,10 @@
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
 
-                <!-- Password -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="New Password"
+                    android:text="New Password (Optional)"
                     android:textSize="14sp"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="4dp"/>
@@ -189,7 +186,7 @@
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/password"
+                    android:hint="Enter new password to change"
                     android:inputType="textPassword"
                     android:textColorHint="@color/text_hint"
                     android:textColor="@color/text_primary"
@@ -198,7 +195,6 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Save Button -->
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"

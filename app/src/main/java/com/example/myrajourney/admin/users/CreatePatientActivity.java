@@ -9,7 +9,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
@@ -17,7 +16,6 @@ import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.CreateUserRequest;
 import com.example.myrajourney.data.model.User;
-// ---------------------
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -77,7 +75,7 @@ public class CreatePatientActivity extends AppCompatActivity {
         // Create patient via backend API
         ApiService apiService = ApiClient.getApiService(this);
 
-        // Create request using setters to avoid constructor mismatch
+        // Create request using setters
         CreateUserRequest request = new CreateUserRequest();
         request.setName(name);
         request.setEmail(email);
@@ -97,9 +95,10 @@ public class CreatePatientActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     User user = response.body().getData();
                     if (user != null) {
-                        tvPatientId.setText("Patient ID: " + user.getId()); // Now works because getId() returns int
+                        tvPatientId.setText("Patient ID: " + user.getId());
                         tvUsername.setText("Username: " + user.getEmail());
                         tvPassword.setText("Default Password: welcome123");
+
                         Toast.makeText(CreatePatientActivity.this, "Patient Registered Successfully!", Toast.LENGTH_LONG).show();
 
                         // Clear fields
@@ -108,13 +107,29 @@ public class CreatePatientActivity extends AppCompatActivity {
                         etAge.setText("");
                         etEmail.setText("");
                         etAddress.setText("");
+                        etEmail.setError(null); // Clear any previous error
                     }
                 } else {
+                    // ---------------------------------------------------------
+                    // ✅ IMPROVED ERROR HANDLING FOR DUPLICATE EMAILS
+                    // ---------------------------------------------------------
                     String errorMsg = "Registration failed";
+                    String errorCode = "";
+
                     if (response.body() != null && response.body().getError() != null) {
                         errorMsg = response.body().getError().getMessage();
+                        errorCode = response.body().getError().getCode();
                     }
-                    Toast.makeText(CreatePatientActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+
+                    // Check for 409 Conflict or specific error code
+                    if (response.code() == 409 || "EMAIL_TAKEN".equalsIgnoreCase(errorCode)) {
+                        etEmail.setError("This email is already registered");
+                        etEmail.requestFocus();
+                        Toast.makeText(CreatePatientActivity.this, "Email already exists! Use a different one.", Toast.LENGTH_LONG).show();
+                    } else {
+                        // Generic error
+                        Toast.makeText(CreatePatientActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    }
                 }
             }
 
@@ -122,7 +137,7 @@ public class CreatePatientActivity extends AppCompatActivity {
             public void onFailure(Call<ApiResponse<User>> call, Throwable t) {
                 btnRegisterPatient.setEnabled(true);
                 btnRegisterPatient.setText("Register Patient");
-                Toast.makeText(CreatePatientActivity.this, "Registration failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(CreatePatientActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }

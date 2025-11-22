@@ -11,13 +11,22 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myrajourney.R;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
 import com.example.myrajourney.core.ui.ThemeManager;
+import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.Doctor;
 import com.example.myrajourney.data.model.User;
 import com.example.myrajourney.patient.dashboard.PatientAssignmentAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AssignPatientToDoctorActivity extends AppCompatActivity {
 
@@ -43,56 +52,27 @@ public class AssignPatientToDoctorActivity extends AppCompatActivity {
         // Setup RecyclerView
         patientsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Load data
+        // Load data via Retrofit
         loadDoctors();
-        loadPatients();
     }
 
     private void loadDoctors() {
-        String baseIp = getString(R.string.api_base_ip);
-        String url = "http://" + baseIp + "/myra-admin.php?action=users";
-
-        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        ApiService api = ApiClient.getApiService(this);
+        api.getAllDoctors().enqueue(new Callback<ApiResponse<List<Doctor>>>() {
             @Override
-            public void onFailure(okhttp3.Call call, java.io.IOException e) {
-                runOnUiThread(() -> Toast.makeText(AssignPatientToDoctorActivity.this,
-                        "Failed to load doctors: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            public void onResponse(Call<ApiResponse<List<Doctor>>> call, Response<ApiResponse<List<Doctor>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    doctorsList = response.body().getData();
+                    // Once doctors are loaded, load patients
+                    loadPatients();
+                } else {
+                    Toast.makeText(AssignPatientToDoctorActivity.this, "Failed to load doctors", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException {
-                if (response.isSuccessful()) {
-                    String responseData = response.body().string();
-                    try {
-                        org.json.JSONObject json = new org.json.JSONObject(responseData);
-                        org.json.JSONArray users = json.getJSONArray("data");
-
-                        doctorsList = new ArrayList<>();
-                        for (int i = 0; i < users.length(); i++) {
-                            org.json.JSONObject user = users.getJSONObject(i);
-                            if ("DOCTOR".equals(user.optString("role"))) {
-                                Doctor doctor = new Doctor();
-                                doctor.setId(user.getInt("id"));
-                                doctor.setName(user.optString("name"));
-                                doctor.setEmail(user.optString("email"));
-                                doctor.setSpecialization(user.optString("specialization"));
-                                doctorsList.add(doctor);
-                            }
-                        }
-
-                        runOnUiThread(() -> Toast.makeText(AssignPatientToDoctorActivity.this,
-                                "Loaded " + doctorsList.size() + " doctors", Toast.LENGTH_SHORT).show());
-                    } catch (org.json.JSONException e) {
-                        runOnUiThread(() -> Toast.makeText(AssignPatientToDoctorActivity.this,
-                                "Error parsing doctors", Toast.LENGTH_SHORT).show());
-                    }
-                }
+            public void onFailure(Call<ApiResponse<List<Doctor>>> call, Throwable t) {
+                Toast.makeText(AssignPatientToDoctorActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -101,119 +81,73 @@ public class AssignPatientToDoctorActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         emptyView.setVisibility(View.GONE);
 
-        String baseIp = getString(R.string.api_base_ip);
-        String url = "http://" + baseIp + "/myra-admin.php?action=users";
-
-        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        ApiService api = ApiClient.getApiService(this);
+        api.getAllPatients().enqueue(new Callback<ApiResponse<List<User>>>() {
             @Override
-            public void onFailure(okhttp3.Call call, java.io.IOException e) {
-                runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
-                    emptyView.setVisibility(View.VISIBLE);
-                    emptyView.setText("Error: " + e.getMessage());
-                });
-            }
+            public void onResponse(Call<ApiResponse<List<User>>> call, Response<ApiResponse<List<User>>> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    patientsList = response.body().getData();
 
-            @Override
-            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException {
-                if (response.isSuccessful()) {
-                    String responseData = response.body().string();
-                    try {
-                        org.json.JSONObject json = new org.json.JSONObject(responseData);
-                        org.json.JSONArray users = json.getJSONArray("data");
-
-                        patientsList = new ArrayList<>();
-                        for (int i = 0; i < users.length(); i++) {
-                            org.json.JSONObject userJson = users.getJSONObject(i);
-                            if ("PATIENT".equals(userJson.optString("role"))) {
-                                User user = new User();
-                                user.setId(userJson.getInt("id"));
-                                user.setName(userJson.optString("name"));
-                                user.setEmail(userJson.optString("email"));
-                                user.setRole("PATIENT");
-                                user.setAssignedDoctorId(userJson.isNull("assigned_doctor_id") ?
-                                        null : userJson.getInt("assigned_doctor_id"));
-                                patientsList.add(user);
+                    if (patientsList == null || patientsList.isEmpty()) {
+                        emptyView.setVisibility(View.VISIBLE);
+                        emptyView.setText("No patients found");
+                    } else {
+                        // Filter out non-patients just in case backend sends mixed users
+                        List<User> filteredList = new ArrayList<>();
+                        for (User u : patientsList) {
+                            if ("PATIENT".equalsIgnoreCase(u.getRole())) {
+                                filteredList.add(u);
                             }
                         }
 
-                        runOnUiThread(() -> {
-                            progressBar.setVisibility(View.GONE);
-                            if (patientsList.isEmpty()) {
-                                emptyView.setVisibility(View.VISIBLE);
-                                emptyView.setText("No patients found");
-                            } else {
-                                adapter = new PatientAssignmentAdapter(patientsList, doctorsList,
-                                        AssignPatientToDoctorActivity.this::assignPatient);
-                                patientsRecyclerView.setAdapter(adapter);
-                            }
-                        });
-                    } catch (org.json.JSONException e) {
-                        runOnUiThread(() -> {
-                            progressBar.setVisibility(View.GONE);
-                            emptyView.setVisibility(View.VISIBLE);
-                            emptyView.setText("Error parsing data");
-                        });
+                        adapter = new PatientAssignmentAdapter(filteredList, doctorsList,
+                                AssignPatientToDoctorActivity.this::assignPatient);
+                        patientsRecyclerView.setAdapter(adapter);
                     }
+                } else {
+                    emptyView.setVisibility(View.VISIBLE);
+                    emptyView.setText("Failed to load patients");
                 }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<User>>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                emptyView.setVisibility(View.VISIBLE);
+                emptyView.setText("Network Error: " + t.getMessage());
             }
         });
     }
 
     private void assignPatient(int patientId, Integer doctorId) {
-        String baseIp = getString(R.string.api_base_ip);
-        String url = "http://" + baseIp + "/myra-admin.php?action=assign";
+        ApiService api = ApiClient.getApiService(this);
 
-        org.json.JSONObject jsonBody = new org.json.JSONObject();
-        try {
-            jsonBody.put("patient_id", patientId);
-            jsonBody.put("doctor_id", doctorId);
-        } catch (org.json.JSONException e) {
-            Toast.makeText(this, "Error creating request", Toast.LENGTH_SHORT).show();
-            return;
+        Map<String, Integer> request = new HashMap<>();
+        request.put("patient_id", patientId);
+        if (doctorId != null) {
+            request.put("doctor_id", doctorId);
         }
 
-        okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
-        okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
-
-        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(url)
-                .post(body)
-                .build();
-
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        api.assignPatientToDoctor(request).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
-            public void onFailure(okhttp3.Call call, java.io.IOException e) {
-                runOnUiThread(() -> Toast.makeText(AssignPatientToDoctorActivity.this,
-                        "Assignment failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Toast.makeText(AssignPatientToDoctorActivity.this, "Patient assigned successfully!", Toast.LENGTH_LONG).show();
+                    // Refresh list to show new status
+                    loadPatients();
+                } else {
+                    String msg = "Assignment failed";
+                    if (response.body() != null && response.body().getError() != null) {
+                        msg = response.body().getError().getMessage();
+                    }
+                    Toast.makeText(AssignPatientToDoctorActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException {
-                String responseData = response.body().string();
-                runOnUiThread(() -> {
-                    try {
-                        org.json.JSONObject json = new org.json.JSONObject(responseData);
-                        if (json.optBoolean("success")) {
-                            Toast.makeText(AssignPatientToDoctorActivity.this,
-                                    "Patient assigned successfully!", Toast.LENGTH_LONG).show();
-                            loadPatients();
-                        } else {
-                            Toast.makeText(AssignPatientToDoctorActivity.this,
-                                    "Assignment failed", Toast.LENGTH_SHORT).show();
-                        }
-                    } catch (org.json.JSONException e) {
-                        Toast.makeText(AssignPatientToDoctorActivity.this,
-                                "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Toast.makeText(AssignPatientToDoctorActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
