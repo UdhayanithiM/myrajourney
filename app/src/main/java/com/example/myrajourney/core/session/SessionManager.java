@@ -20,7 +20,7 @@ public class SessionManager {
         this.prefs = appContext.getSharedPreferences(PREF, Context.MODE_PRIVATE);
     }
 
-    // ONBOARDING
+    // --- ONBOARDING ---
     public void setOnboardingCompleted(boolean done) {
         prefs.edit().putBoolean(KEY_ONBOARD, done).apply();
     }
@@ -29,7 +29,7 @@ public class SessionManager {
         return prefs.getBoolean(KEY_ONBOARD, false);
     }
 
-    // SESSION
+    // --- SESSION MANAGEMENT ---
     public void createSession(String name, String email, String role) {
         prefs.edit()
                 .putString(KEY_NAME, name)
@@ -38,31 +38,40 @@ public class SessionManager {
                 .apply();
     }
 
+    // Check if Token exists via TokenManager
     public boolean isSessionValid() {
-        return com.example.myrajourney.core.session.TokenManager
-                .getInstance(appContext)
-                .getToken() != null;
+        return TokenManager.getInstance(appContext).getToken() != null;
     }
 
+    // Helper for legacy calls check
+    public boolean isLoggedIn() {
+        return isSessionValid();
+    }
+
+    // --- GETTERS ---
     public String getRole() {
         return prefs.getString(KEY_ROLE, null);
     }
 
+    public String getUserName() {
+        return prefs.getString(KEY_NAME, "User");
+    }
+
+    public String getUserEmail() {
+        return prefs.getString(KEY_EMAIL, "");
+    }
+
+    // --- LOGOUT ---
     public void logout() {
         boolean onboard = isOnboardingCompleted();
 
+        // Clear all session data
         prefs.edit().clear().apply();
 
-        com.example.myrajourney.core.session.TokenManager
-                .getInstance(appContext)
-                .clear();
+        // Clear Auth Token
+        TokenManager.getInstance(appContext).clear();
 
+        // Restore onboarding status
         setOnboardingCompleted(onboard);
     }
 }
-
-
-
-
-
-

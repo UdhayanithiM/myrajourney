@@ -1,5 +1,4 @@
 package com.example.myrajourney.core.network;
-
 import com.example.myrajourney.data.model.ActiveRequest;
 import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.Appointment; // ✅ Added missing import

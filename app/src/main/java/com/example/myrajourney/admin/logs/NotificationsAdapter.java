@@ -7,43 +7,50 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+// --- CRITICAL IMPORT ---
+import com.example.myrajourney.R;
+// ----------------------
+
 import com.example.myrajourney.data.model.Notification;
 import java.util.List;
 
 public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdapter.VH> {
     private final Context context;
     private final List<Notification> data;
-    
+
     public NotificationsAdapter(Context context, List<Notification> data) {
         this.context = context;
         this.data = data;
     }
 
-    @NonNull 
-    @Override 
+    @NonNull
+    @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(context).inflate(R.layout.item_notification, parent, false);
         return new VH(v);
     }
 
-    @Override 
+    @Override
     public void onBindViewHolder(@NonNull VH h, int i) {
         Notification n = data.get(i);
         h.title.setText(n.getTitle());
+        // Uses the helper getBody() added to the model
         h.body.setText(n.getBody() == null ? "" : n.getBody());
         h.time.setText(n.getCreatedAt());
+        // Uses the helper isUnread() added to the model
         h.unreadDot.setVisibility(n.isUnread() ? View.VISIBLE : View.INVISIBLE);
     }
 
-    @Override 
-    public int getItemCount() { 
-        return data.size(); 
+    @Override
+    public int getItemCount() {
+        return data.size();
     }
 
     static class VH extends RecyclerView.ViewHolder {
         TextView title, body, time;
         View unreadDot;
-        
+
         VH(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.title);
@@ -53,9 +60,3 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
         }
     }
 }
-
-
-
-
-
-

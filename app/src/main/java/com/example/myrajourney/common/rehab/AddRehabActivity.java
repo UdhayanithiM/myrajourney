@@ -11,6 +11,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.ui.ThemeManager;
+import com.example.myrajourney.data.model.Rehab;
+// ---------------------
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +30,9 @@ public class AddRehabActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Apply theme
+        ThemeManager.applyTheme(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_rehab);
 
@@ -78,9 +87,3 @@ public class AddRehabActivity extends AppCompatActivity {
         adapter.filterList(temp);
     }
 }
-
-
-
-
-
-

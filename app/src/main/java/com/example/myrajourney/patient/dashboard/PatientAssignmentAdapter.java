@@ -12,6 +12,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+// --- CRITICAL IMPORT FIX ---
+import com.example.myrajourney.R;
+// ---------------------------
+
 import com.example.myrajourney.data.model.Doctor;
 import com.example.myrajourney.data.model.User;
 
@@ -56,7 +60,8 @@ public class PatientAssignmentAdapter extends RecyclerView.Adapter<PatientAssign
         TextView patientName, patientEmail, currentDoctor;
         Spinner doctorSpinner;
         Button assignButton;
-        
+
+        // Use Integer since doctor ID can be null or int
         private Integer selectedDoctorId = null;
 
         ViewHolder(View itemView) {
@@ -71,19 +76,20 @@ public class PatientAssignmentAdapter extends RecyclerView.Adapter<PatientAssign
         void bind(User patient) {
             patientName.setText(patient.getName() != null ? patient.getName() : "Patient #" + patient.getId());
             patientEmail.setText(patient.getEmail());
-            
+
             // Show current doctor if assigned
             String currentDoctorText = "Not assigned";
-            if (patient.getAssignedDoctorId() != null) {
+            if (patient.getAssignedDoctorId() != null && patient.getAssignedDoctorId() > 0) {
                 for (Doctor doc : doctors) {
-                    if (doc.getId().equals(patient.getAssignedDoctorId())) {
+                    // Compare IDs (int vs Integer) safely
+                    if (doc.getId() == patient.getAssignedDoctorId()) {
                         currentDoctorText = "Assigned to: " + doc.getName();
                         break;
                     }
                 }
             }
             currentDoctor.setText(currentDoctorText);
-            
+
             // Setup doctor spinner
             List<String> doctorNames = new ArrayList<>();
             doctorNames.add("Select Doctor");
@@ -94,21 +100,21 @@ public class PatientAssignmentAdapter extends RecyclerView.Adapter<PatientAssign
                 }
                 doctorNames.add(name);
             }
-            
+
             ArrayAdapter<String> adapter = new ArrayAdapter<>(itemView.getContext(), android.R.layout.simple_spinner_item, doctorNames);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             doctorSpinner.setAdapter(adapter);
-            
+
             // Set current selection if patient is assigned
-            if (patient.getAssignedDoctorId() != null) {
+            if (patient.getAssignedDoctorId() != null && patient.getAssignedDoctorId() > 0) {
                 for (int i = 0; i < doctors.size(); i++) {
-                    if (doctors.get(i).getId().equals(patient.getAssignedDoctorId())) {
+                    if (doctors.get(i).getId() == patient.getAssignedDoctorId()) {
                         doctorSpinner.setSelection(i + 1); // +1 because of "Select Doctor" at position 0
                         break;
                     }
                 }
             }
-            
+
             doctorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -116,6 +122,7 @@ public class PatientAssignmentAdapter extends RecyclerView.Adapter<PatientAssign
                         selectedDoctorId = null;
                         assignButton.setEnabled(false);
                     } else {
+                        // Get ID from doctor list (offset by 1 due to "Select Doctor" header)
                         selectedDoctorId = doctors.get(position - 1).getId();
                         assignButton.setEnabled(true);
                     }
@@ -127,7 +134,7 @@ public class PatientAssignmentAdapter extends RecyclerView.Adapter<PatientAssign
                     assignButton.setEnabled(false);
                 }
             });
-            
+
             assignButton.setOnClickListener(v -> {
                 if (selectedDoctorId != null) {
                     listener.onAssign(patient.getId(), selectedDoctorId);
@@ -136,9 +143,3 @@ public class PatientAssignmentAdapter extends RecyclerView.Adapter<PatientAssign
         }
     }
 }
-
-
-
-
-
-

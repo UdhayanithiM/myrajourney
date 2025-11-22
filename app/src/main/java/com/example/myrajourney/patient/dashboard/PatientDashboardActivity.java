@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -21,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+// --- IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.common.messaging.ChatAdapter;
 import com.example.myrajourney.common.messaging.ChatBot;
@@ -29,11 +28,8 @@ import com.example.myrajourney.core.navigation.NavigationManager;
 import com.example.myrajourney.core.session.SessionManager;
 import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.Appointment;
-import com.example.myrajourney.doctor.dashboard.HealthMetric; // Ensure this matches your structure
-import com.google.android.material.navigation.NavigationView;
 
 // Feature Activities
-import com.example.myrajourney.patient.appointments.AppointmentDetailsActivity;
 import com.example.myrajourney.patient.appointments.PatientAppointmentsActivity;
 import com.example.myrajourney.patient.education.EducationHubActivity;
 import com.example.myrajourney.patient.medications.PatientMedicationsActivity;
@@ -44,11 +40,11 @@ import com.example.myrajourney.doctor.dashboard.HealthStatsActivity;
 import com.example.myrajourney.admin.logs.AllNotificationsActivity;
 import com.example.myrajourney.admin.dashboard.SettingsActivity;
 
-import java.text.SimpleDateFormat;
+import com.google.android.material.navigation.NavigationView;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
@@ -78,8 +74,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // 1. Initialize Session
         sessionManager = new SessionManager(this);
 
-        // Check if user is logged in using new secure check
-        if (!sessionManager.isSessionValid(this)) {
+        // Check if user is logged in (Fixed: Removed 'this' argument)
+        if (!sessionManager.isSessionValid()) {
             NavigationManager.goToLogin(this);
             finish();
             return;
@@ -106,11 +102,9 @@ public class PatientDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // Update Health Cards (Pain, DAS28, etc.)
+        // Update Health Cards
         viewModel.getHealthMetrics().observe(this, metrics -> {
-            // Here you would update specific card views based on the metric type
-            // For now, we ensure data is flowing.
-            // Example: findViewWithTag(metric.getName()).setText(metric.getValue());
+            // Update health metrics UI logic here
         });
 
         // Update Appointment Cards
@@ -121,11 +115,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
             if (error != null) {
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show();
             }
-        });
-
-        // Handle Loading State
-        viewModel.getIsLoading().observe(this, isLoading -> {
-            // Optional: Show/Hide global progress bar
         });
     }
 
@@ -143,20 +132,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        // Sort by date logic
-        List<Appointment> upcoming = new ArrayList<>();
-        Calendar now = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()); // Adjusted format based on Model
-
-        for (Appointment apt : appointments) {
-            // Basic date check logic...
-            upcoming.add(apt);
-        }
+        List<Appointment> upcoming = new ArrayList<>(appointments);
 
         // Update first card
         if (!upcoming.isEmpty() && consultationTitle != null) {
             Appointment first = upcoming.get(0);
-            consultationTitle.setText(first.getAppointmentType() != null ? first.getAppointmentType() : "Appointment");
+            consultationTitle.setText(first.getTitle() != null ? first.getTitle() : "Appointment");
             consultationDate.setText(first.getDate() + " " + first.getTimeSlot());
             if (consultationCard != null) consultationCard.setVisibility(View.VISIBLE);
         }
@@ -164,7 +145,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // Update second card
         if (upcoming.size() > 1 && followupTitle != null) {
             Appointment second = upcoming.get(1);
-            followupTitle.setText(second.getAppointmentType() != null ? second.getAppointmentType() : "Appointment");
+            followupTitle.setText(second.getTitle() != null ? second.getTitle() : "Appointment");
             followupDate.setText(second.getDate() + " " + second.getTimeSlot());
             if (followupCard != null) followupCard.setVisibility(View.VISIBLE);
         }
@@ -193,13 +174,13 @@ public class PatientDashboardActivity extends AppCompatActivity {
         if (yesBtn != null) {
             yesBtn.setOnClickListener(v -> {
                 viewModel.setTaskCompleted(true);
-                Toast.makeText(this, "Great! Task completed âœ…", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Great! Task completed \u2705", Toast.LENGTH_SHORT).show();
             });
         }
 
         if (noBtn != null) {
             noBtn.setOnClickListener(v -> {
-                Toast.makeText(this, "Please complete your task âŒ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please complete your task \u274C", Toast.LENGTH_SHORT).show();
             });
         }
 
@@ -211,12 +192,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
         View healthCard = findViewById(R.id.healthStatsCard);
         if (healthCard != null) healthCard.setOnClickListener(v -> startActivity(new Intent(this, HealthStatsActivity.class)));
 
-        // Appointment Details
+        // Appointment Details - redirect to main Appointments page
         View consultationBtn = findViewById(R.id.consultationDetailsBtn);
-        if (consultationBtn != null) consultationBtn.setOnClickListener(v -> openAppointmentDetails(0));
+        if (consultationBtn != null) consultationBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientAppointmentsActivity.class)));
 
         View followupBtn = findViewById(R.id.followupDetailsBtn);
-        if (followupBtn != null) followupBtn.setOnClickListener(v -> openAppointmentDetails(1));
+        if (followupBtn != null) followupBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientAppointmentsActivity.class)));
 
         // Menu & Logout
         if (menuIcon != null) {
@@ -249,18 +230,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         View rehabBtn = findViewById(R.id.rehabBtn);
         if (rehabBtn != null) rehabBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientRehabilitationActivity.class)));
-    }
-
-    private void openAppointmentDetails(int index) {
-        List<Appointment> list = viewModel.getUpcomingAppointments().getValue();
-        if (list != null && list.size() > index) {
-            Appointment apt = list.get(index);
-            Intent i = new Intent(this, AppointmentDetailsActivity.class);
-            i.putExtra("title", apt.getAppointmentType());
-            i.putExtra("datetime", apt.getDate() + " " + apt.getTimeSlot());
-            i.putExtra("details", apt.getReason());
-            startActivity(i);
-        }
     }
 
     private void showChatDialog() {
@@ -304,8 +273,9 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    sessionManager.logout(this); // Clears session & token
-                    NavigationManager.goToLogin(this); // Use NavigationManager
+                    // Fixed: Removed 'this' argument
+                    sessionManager.logout();
+                    NavigationManager.goToLogin(this);
                     finish();
                 })
                 .setNegativeButton("No", null)
@@ -317,6 +287,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         TextView navHeaderName = headerView.findViewById(R.id.navHeaderPatientName);
         TextView navHeaderEmail = headerView.findViewById(R.id.navHeaderPatientEmail);
 
+        // Fixed: Added getters in SessionManager to support this
         String userName = sessionManager.getUserName();
         String userEmail = sessionManager.getUserEmail();
 
@@ -352,9 +323,3 @@ public class PatientDashboardActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-

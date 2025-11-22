@@ -7,6 +7,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.ui.ThemeManager;
+// ---------------------
+
 public class SettingsActivity extends AppCompatActivity {
 
     private EditText etEmail, etPhone, etAddress, etPassword;
@@ -17,7 +22,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
@@ -51,9 +56,3 @@ public class SettingsActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-

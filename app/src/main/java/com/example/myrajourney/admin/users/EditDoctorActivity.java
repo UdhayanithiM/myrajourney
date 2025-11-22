@@ -12,6 +12,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.ui.ThemeManager;
+// ---------------------
+
 public class EditDoctorActivity extends AppCompatActivity {
 
     private EditText etDoctorId, etName, etMobile, etAge, etEmail, etAddress, etSpecialization;
@@ -23,7 +28,7 @@ public class EditDoctorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_doctor);
 
@@ -90,9 +95,3 @@ public class EditDoctorActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-

@@ -28,6 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.example.myrajourney.core.session.SessionManager;
+import com.example.myrajourney.data.model.Patient;
+import com.example.myrajourney.doctor.patients.AllPatientsActivity; // If referenced
+
 public class DoctorDashboardActivity extends AppCompatActivity {
 
     // RecyclerViews

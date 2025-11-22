@@ -13,6 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Rehab;
+// ---------------------
+
 import java.util.List;
 
 public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddRehabViewHolder> {
@@ -41,16 +46,25 @@ public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddReh
         holder.reps.setText(rehab.getReps());
         holder.frequency.setText(rehab.getFrequency());
 
-        Glide.with(context)
-                .load(rehab.getThumbnailUrl())
-                .into(holder.thumbnail);
+        if (rehab.getThumbnailUrl() != null && !rehab.getThumbnailUrl().isEmpty()) {
+            Glide.with(context)
+                    .load(rehab.getThumbnailUrl())
+                    .placeholder(R.drawable.ic_rehab_placeholder)
+                    .error(R.drawable.ic_error_placeholder)
+                    .into(holder.thumbnail);
+        }
 
+        holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(rehab.isSelected());
-        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> rehab.setSelected(isChecked));
+        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            rehab.setSelected(isChecked);
+        });
     }
 
     @Override
-    public int getItemCount() { return rehabList.size(); }
+    public int getItemCount() {
+        return rehabList.size();
+    }
 
     public void filterList(List<Rehab> filteredList) {
         this.rehabList = filteredList;
@@ -73,9 +87,3 @@ public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddReh
         }
     }
 }
-
-
-
-
-
-

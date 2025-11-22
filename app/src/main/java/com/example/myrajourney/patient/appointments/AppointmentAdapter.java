@@ -10,6 +10,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Appointment;
+
 public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.AppViewHolder> {
 
     private Context context;

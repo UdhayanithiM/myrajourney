@@ -11,6 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Patient;
+// ---------------------
+
 public class PatientsAdapter extends RecyclerView.Adapter<PatientsAdapter.PatientViewHolder> {
 
     private Context context;
@@ -34,16 +39,33 @@ public class PatientsAdapter extends RecyclerView.Adapter<PatientsAdapter.Patien
         Patient patient = patientList.get(position);
 
         // Bind data
-        holder.name.setText(patient.getName());
-        holder.details.setText(patient.getDetails());
-        holder.image.setImageResource(patient.getImageResId());
+        // Ensure safely handling nulls
+        String name = patient.getName() != null ? patient.getName() : "Unknown";
+        holder.name.setText(name);
+
+        // Construct details string (e.g., "Age: 30 | email@example.com")
+        StringBuilder detailsBuilder = new StringBuilder();
+        if (patient.getAge() != null && !patient.getAge().isEmpty()) {
+            detailsBuilder.append("Age: ").append(patient.getAge());
+        }
+        if (patient.getEmail() != null && !patient.getEmail().isEmpty()) {
+            if (detailsBuilder.length() > 0) detailsBuilder.append(" | ");
+            detailsBuilder.append(patient.getEmail());
+        }
+        holder.details.setText(detailsBuilder.toString());
+
+        // Set image - Using default since API might send string URL but we need a placeholder for now
+        // If you have Glide/Picasso, you can load patient.getProfileImageUrl() here.
+        holder.image.setImageResource(R.drawable.ic_person_default);
 
         // Handle click to open patient details
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, PatientDetailsActivity.class);
             intent.putExtra("patient_name", patient.getName());
-            intent.putExtra("patient_details", patient.getDetails());
-            intent.putExtra("patient_image", patient.getImageResId());
+            intent.putExtra("patient_age", patient.getAge());
+            intent.putExtra("patient_email", patient.getEmail()); // Useful for details
+            // Passing default image resource for now
+            intent.putExtra("patient_image", R.drawable.ic_person_default);
             context.startActivity(intent);
         });
     }
@@ -61,14 +83,9 @@ public class PatientsAdapter extends RecyclerView.Adapter<PatientsAdapter.Patien
         public PatientViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.patient_name);
+            // Ensure this ID matches your item_patient.xml (often id/patient_details or id/patient_age_condition)
             details = itemView.findViewById(R.id.patient_age_condition);
             image = itemView.findViewById(R.id.patient_image);
         }
     }
 }
-
-
-
-
-
-

@@ -5,13 +5,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Medication;
+// ---------------------
+
 import java.util.List;
 
-public class MedicationsAdapter extends RecyclerView.Adapter<MedicationsAdapter.MedicationsViewHolder> {
+public class MedicationsAdapter extends RecyclerView.Adapter<MedicationsAdapter.ViewHolder> {
 
     private Context context;
     private List<Medication> medicationList;
@@ -21,21 +25,29 @@ public class MedicationsAdapter extends RecyclerView.Adapter<MedicationsAdapter.
         this.medicationList = medicationList;
     }
 
+    public void filterList(List<Medication> filteredList) {
+        this.medicationList = filteredList;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
-    public MedicationsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_medication, parent, false);
-        return new MedicationsViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MedicationsViewHolder holder, int position) {
-        Medication med = medicationList.get(position);
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Medication medication = medicationList.get(position);
+        holder.name.setText(medication.getName());
 
-        holder.name.setText(med.getName());
-        holder.type.setText(med.getType());
-        holder.details.setText(med.getDosage() + ", " + med.getFrequency() + ", " + med.getDuration());
-        holder.status.setText(med.getStatus());
+        // Safe checks for null values
+        String dosage = medication.getDosage() != null ? medication.getDosage() : "N/A";
+        String frequency = medication.getFrequency() != null ? medication.getFrequency() : "N/A";
+
+        holder.dosage.setText(dosage);
+        holder.frequency.setText(frequency);
     }
 
     @Override
@@ -43,26 +55,15 @@ public class MedicationsAdapter extends RecyclerView.Adapter<MedicationsAdapter.
         return medicationList.size();
     }
 
-    public void filterList(List<Medication> filteredList) {
-        this.medicationList = filteredList;
-        notifyDataSetChanged();
-    }
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView name, dosage, frequency;
 
-    static class MedicationsViewHolder extends RecyclerView.ViewHolder {
-        TextView name, type, details, status;
-
-        public MedicationsViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            // These IDs must exist in res/layout/item_medication.xml
             name = itemView.findViewById(R.id.med_name);
-            type = itemView.findViewById(R.id.med_type);
-            details = itemView.findViewById(R.id.med_details);
-            status = itemView.findViewById(R.id.med_status);
+            dosage = itemView.findViewById(R.id.med_dosage);
+            frequency = itemView.findViewById(R.id.med_frequency);
         }
     }
 }
-
-
-
-
-
-

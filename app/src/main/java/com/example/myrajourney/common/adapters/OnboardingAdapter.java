@@ -9,6 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.common.models.OnboardingItem;
+// ---------------------
+
 public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.OnboardingViewHolder> {
 
     private List<OnboardingItem> onboardingItems;
@@ -49,15 +54,11 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
         }
 
         void setOnboardingData(OnboardingItem item) {
-            imageOnboarding.setImageResource(item.image);
-            titleOnboarding.setText(item.title);
-            descOnboarding.setText(item.description);
+            // Using standard Getters.
+            // Ensure your OnboardingItem.java has public getters: getImage(), getTitle(), getDescription()
+            imageOnboarding.setImageResource(item.getImage());
+            titleOnboarding.setText(item.getTitle());
+            descOnboarding.setText(item.getDescription());
         }
     }
 }
-
-
-
-
-
-

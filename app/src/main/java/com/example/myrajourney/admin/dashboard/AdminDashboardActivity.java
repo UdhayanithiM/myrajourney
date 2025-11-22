@@ -10,6 +10,19 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+// --- IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.session.SessionManager;
+import com.example.myrajourney.core.ui.ThemeManager;
+import com.example.myrajourney.auth.LoginActivity;
+import com.example.myrajourney.admin.users.CreatePatientActivity;
+import com.example.myrajourney.admin.users.CreateDoctorActivity;
+import com.example.myrajourney.admin.users.EditPatientActivity;
+import com.example.myrajourney.admin.users.EditDoctorActivity;
+import com.example.myrajourney.admin.assignments.AssignPatientToDoctorActivity;
+import com.example.myrajourney.doctor.patients.AllPatientsActivity;
+// ---------------------
+
 public class AdminDashboardActivity extends AppCompatActivity {
 
     // Footer navigation buttons
@@ -20,10 +33,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     // Search bar
     private SearchView searchBar;
-    
+
     // Logout button
     private ImageView logoutBtn;
-    
+
     // Session Manager
     SessionManager sessionManager;
 
@@ -31,13 +44,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
-        
+
         // Initialize session manager
         sessionManager = new SessionManager(this);
-        
+
         // Check if user is logged in
         if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
@@ -56,7 +69,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         navSettings = findViewById(R.id.navSettings);
         searchBar = findViewById(R.id.searchBar);
         logoutBtn = findViewById(R.id.logoutBtn);
-        
+
         // Set up logout listener
         logoutBtn.setOnClickListener(v -> showLogoutDialog());
 
@@ -83,21 +96,21 @@ public class AdminDashboardActivity extends AppCompatActivity {
         btnCreateDoctor.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, CreateDoctorActivity.class))
         );
-        
+
         // Assign patients button
         if (btnAssignPatients != null) {
             btnAssignPatients.setOnClickListener(v ->
                     startActivity(new Intent(AdminDashboardActivity.this, AssignPatientToDoctorActivity.class))
             );
         }
-        
+
         // View all patients button
         if (btnViewAllPatients != null) {
             btnViewAllPatients.setOnClickListener(v ->
                     startActivity(new Intent(AdminDashboardActivity.this, AllPatientsActivity.class))
             );
         }
-        
+
         // View all doctors button
         if (btnViewAllDoctors != null) {
             btnViewAllDoctors.setOnClickListener(v -> {
@@ -119,13 +132,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(AdminDashboardActivity.this, SettingsActivity.class))
         );
     }
-    
+
     private void showLogoutDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    sessionManager.logout(AdminDashboardActivity.this);
+                    // FIX: Removed parameter. sessionManager.logout() takes no arguments.
+                    sessionManager.logout();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })
@@ -133,9 +147,3 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 .show();
     }
 }
-
-
-
-
-
-

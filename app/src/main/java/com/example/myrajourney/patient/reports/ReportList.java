@@ -13,6 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.ui.ThemeManager;
+import com.example.myrajourney.data.model.Report;
+// ---------------------
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +35,9 @@ public class ReportList extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Apply theme
+        ThemeManager.applyTheme(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_list);
 
@@ -37,7 +46,10 @@ public class ReportList extends AppCompatActivity {
         addButton = findViewById(R.id.addButton);
 
         reportList = new ArrayList<>();
-        adapter = new ReportAdapter(reportList);
+        // Initialize with some sample data or load from API if needed
+        // reportList.add(new Report("Sample Report", "2023-10-01", ""));
+
+        adapter = new ReportAdapter(this, reportList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -47,6 +59,7 @@ public class ReportList extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Intent data = result.getData();
+                        // Ensure these keys match what UploadReportActivity sends back
                         String name = data.getStringExtra("name");
                         String date = data.getStringExtra("date");
                         String fileUri = data.getStringExtra("fileUri");
@@ -78,17 +91,15 @@ public class ReportList extends AppCompatActivity {
     private void filter(String text) {
         List<Report> filteredList = new ArrayList<>();
         for (Report report : reportList) {
-            if (report.getName().toLowerCase().contains(text.toLowerCase()) ||
-                    report.getDate().toLowerCase().contains(text.toLowerCase())) {
+            // Safe null check
+            String name = report.getName() != null ? report.getName() : "";
+            String date = report.getDate() != null ? report.getDate() : "";
+
+            if (name.toLowerCase().contains(text.toLowerCase()) ||
+                    date.toLowerCase().contains(text.toLowerCase())) {
                 filteredList.add(report);
             }
         }
         adapter.filterList(filteredList);
     }
 }
-
-
-
-
-
-

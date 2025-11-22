@@ -9,7 +9,19 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.Random;
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.ui.ThemeManager;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.CreateUserRequest;
+import com.example.myrajourney.data.model.User;
+// ---------------------
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CreatePatientActivity extends AppCompatActivity {
 
@@ -18,13 +30,11 @@ public class CreatePatientActivity extends AppCompatActivity {
     private ImageView imgProfilePic;
     private Button btnUploadPic, btnRegisterPatient;
 
-    private static int patientCounter = 1000; // For generating unique IDs
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_patient);
 
@@ -47,7 +57,7 @@ public class CreatePatientActivity extends AppCompatActivity {
         // Handle Register Button
         btnRegisterPatient.setOnClickListener(v -> createPatient());
     }
-    
+
     private void createPatient() {
         String name = etName.getText().toString().trim();
         String mobile = etMobile.getText().toString().trim();
@@ -60,29 +70,44 @@ public class CreatePatientActivity extends AppCompatActivity {
             return;
         }
 
+        // Disable button
+        btnRegisterPatient.setEnabled(false);
+        btnRegisterPatient.setText("Creating...");
+
         // Create patient via backend API
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        
-        // Create request
-        com.example.myrajourney.data.model.CreateUserRequest request = new com.example.myrajourney.data.model.CreateUserRequest(
-            name, email, mobile, "PATIENT", "welcome123", address
-        );
-        
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.User>> call = apiService.createUser(request);
-        
-        call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.User>>() {
+        ApiService apiService = ApiClient.getApiService(this);
+
+        // Create request using setters to avoid constructor mismatch
+        CreateUserRequest request = new CreateUserRequest();
+        request.setName(name);
+        request.setEmail(email);
+        request.setMobile(mobile);
+        request.setRole("PATIENT");
+        request.setPassword("welcome123");
+        request.setAddress(address);
+
+        Call<ApiResponse<User>> call = apiService.createUser(request);
+
+        call.enqueue(new Callback<ApiResponse<User>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.User>> call, retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.User>> response) {
+            public void onResponse(Call<ApiResponse<User>> call, Response<ApiResponse<User>> response) {
+                btnRegisterPatient.setEnabled(true);
+                btnRegisterPatient.setText("Register Patient");
+
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    com.example.myrajourney.data.model
-.User user = response.body().getData();
+                    User user = response.body().getData();
                     if (user != null) {
-                        tvPatientId.setText("Patient ID: " + user.getId());
+                        tvPatientId.setText("Patient ID: " + user.getId()); // Now works because getId() returns int
                         tvUsername.setText("Username: " + user.getEmail());
                         tvPassword.setText("Default Password: welcome123");
                         Toast.makeText(CreatePatientActivity.this, "Patient Registered Successfully!", Toast.LENGTH_LONG).show();
+
+                        // Clear fields
+                        etName.setText("");
+                        etMobile.setText("");
+                        etAge.setText("");
+                        etEmail.setText("");
+                        etAddress.setText("");
                     }
                 } else {
                     String errorMsg = "Registration failed";
@@ -92,19 +117,13 @@ public class CreatePatientActivity extends AppCompatActivity {
                     Toast.makeText(CreatePatientActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.User>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<User>> call, Throwable t) {
+                btnRegisterPatient.setEnabled(true);
+                btnRegisterPatient.setText("Register Patient");
                 Toast.makeText(CreatePatientActivity.this, "Registration failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 }
-
-
-
-
-
-

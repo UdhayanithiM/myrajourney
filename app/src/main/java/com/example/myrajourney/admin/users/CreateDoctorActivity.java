@@ -14,7 +14,21 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.ui.ThemeManager;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.CreateUserRequest;
+import com.example.myrajourney.data.model.User;
+// ---------------------
+
 import java.util.Random;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CreateDoctorActivity extends AppCompatActivity {
 
@@ -28,9 +42,9 @@ public class CreateDoctorActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme before setting content view
+        // Apply theme
         ThemeManager.applyTheme(this);
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_doctor);
 
@@ -46,7 +60,7 @@ public class CreateDoctorActivity extends AppCompatActivity {
         btnRegisterDoctor = findViewById(R.id.btnRegisterDoctor);
         tvCredentials = findViewById(R.id.tvCredentials);
 
-        // Image picker (optional)
+        // Image picker
         ActivityResultLauncher<String> pickImageLauncher =
                 registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                     if (uri != null) {
@@ -60,7 +74,7 @@ public class CreateDoctorActivity extends AppCompatActivity {
         // Register button click
         btnRegisterDoctor.setOnClickListener(v -> createDoctor());
     }
-    
+
     private void createDoctor() {
         String name = etName.getText().toString().trim();
         String mobile = etMobile.getText().toString().trim();
@@ -76,47 +90,41 @@ public class CreateDoctorActivity extends AppCompatActivity {
             return;
         }
 
-        // Disable button during API call
         btnRegisterDoctor.setEnabled(false);
         btnRegisterDoctor.setText("Creating...");
 
-        // Create doctor via backend API
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        
-        // Create request
-        com.example.myrajourney.data.model.CreateUserRequest request = new com.example.myrajourney.data.model.CreateUserRequest(
-            name, email, mobile, "DOCTOR", defaultPassword, address
-        );
+        ApiService apiService = ApiClient.getApiService(this);
+
+        // Use setters instead of constructor to avoid argument mismatch errors
+        CreateUserRequest request = new CreateUserRequest();
+        request.setName(name);
+        request.setEmail(email);
+        request.setMobile(mobile);
+        request.setRole("DOCTOR");
+        request.setPassword(defaultPassword);
+        request.setAddress(address);
         request.setSpecialization(specialization);
-        
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.User>> call = apiService.createUser(request);
-        
-        call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.User>>() {
+
+        Call<ApiResponse<User>> call = apiService.createUser(request);
+
+        call.enqueue(new Callback<ApiResponse<User>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.User>> call, retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.User>> response) {
+            public void onResponse(Call<ApiResponse<User>> call, Response<ApiResponse<User>> response) {
                 btnRegisterDoctor.setEnabled(true);
                 btnRegisterDoctor.setText("Register Doctor");
-                
+
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    com.example.myrajourney.data.model
-.User user = response.body().getData();
+                    User user = response.body().getData();
                     if (user != null) {
-                        // Show success message
                         Toast.makeText(CreateDoctorActivity.this, "Doctor Registered Successfully!", Toast.LENGTH_LONG).show();
-                        
-                        // Display credentials
+
+                        // Use String.valueOf(user.getId()) to fix symbol error
                         tvCredentials.setText("Doctor ID: " + user.getId() + "\nEmail: " + user.getEmail() + "\nDefault Password: " + defaultPassword);
                         tvCredentials.setVisibility(TextView.VISIBLE);
-                        
-                        // Show credentials card
-                        findViewById(R.id.credentialsCard).setVisibility(View.VISIBLE);
-                        
+
+                        View card = findViewById(R.id.credentialsCard);
+                        if (card != null) card.setVisibility(View.VISIBLE);
+
                         // Clear form
                         etName.setText("");
                         etMobile.setText("");
@@ -133,11 +141,9 @@ public class CreateDoctorActivity extends AppCompatActivity {
                     Toast.makeText(CreateDoctorActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.User>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<User>> call, Throwable t) {
                 btnRegisterDoctor.setEnabled(true);
                 btnRegisterDoctor.setText("Register Doctor");
                 Toast.makeText(CreateDoctorActivity.this, "Registration failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
@@ -145,9 +151,3 @@ public class CreateDoctorActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-

@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class User {
     @SerializedName("id")
-    private Object id; // Can be String or Int depending on backend, Object handles both safely
+    private int id; // Changed to int to match usage: userJson.getInt("id")
 
     @SerializedName("name")
     private String name;
@@ -15,25 +15,21 @@ public class User {
     @SerializedName("role")
     private String role;
 
-    public String getIdString() {
-        return String.valueOf(id);
-    }
+    @SerializedName("assigned_doctor_id")
+    private Integer assignedDoctorId;
 
-    public String getName() {
-        return name;
-    }
+    // --- Getters ---
+    public int getId() { return id; }
+    public String getIdString() { return String.valueOf(id); } // Helper for String requirements
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+    public String getRole() { return role; }
+    public Integer getAssignedDoctorId() { return assignedDoctorId; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getRole() {
-        return role;
-    }
+    // --- Setters (ADDED) ---
+    public void setId(int id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setRole(String role) { this.role = role; }
+    public void setAssignedDoctorId(Integer assignedDoctorId) { this.assignedDoctorId = assignedDoctorId; }
 }
-
-
-
-
-
-

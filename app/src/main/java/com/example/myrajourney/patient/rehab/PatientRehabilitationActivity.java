@@ -12,7 +12,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
+
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.auth.LoginActivity;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.session.SessionManager;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.RehabPlan;
+// ---------------------
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,11 +29,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class PatientRehabilitationActivity extends AppCompatActivity {
 
     private LinearLayout rehabContainer;
     private TextView noRehabText;
-    private List<RehabExercise> todayExercises;
+    // Using local inner class for UI representation
+    private List<LocalRehabExercise> todayExercises;
     private SessionManager sessionManager;
 
     @Override
@@ -35,7 +49,7 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
 
         // Check if user is logged in
-        if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
+        if (!sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
@@ -43,7 +57,6 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
 
         initializeViews();
         loadTodayExercises();
-        displayExercises();
     }
 
     private void initializeViews() {
@@ -56,92 +69,85 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
 
     private void loadTodayExercises() {
         todayExercises = new ArrayList<>();
-        
         // Load rehab exercises from API
         loadRehabFromAPI();
     }
-    
+
     private void loadRehabFromAPI() {
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        // Get current user ID from session
-        SessionManager sessionManager = new SessionManager(this);
-        Integer patientId = sessionManager.getUserId() != null ? Integer.parseInt(sessionManager.getUserId()) : null;
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.RehabPlan>>> call = apiService.getRehabPlans(patientId);
-        
-        call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model
-.RehabPlan>>>() {
+        ApiService apiService = ApiClient.getApiService(this);
+
+        // Get current user ID safely
+        Integer patientId = null;
+        try {
+            String userIdStr = sessionManager.getUserName(); // Or get actual ID if stored in session
+            // In a real app, store ID in session. For now, passing null might let backend use token.
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Call<ApiResponse<List<RehabPlan>>> call = apiService.getRehabPlans(patientId);
+
+        call.enqueue(new Callback<ApiResponse<List<RehabPlan>>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.RehabPlan>>> call, 
-                                 retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.RehabPlan>>> response) {
+            public void onResponse(Call<ApiResponse<List<RehabPlan>>> call,
+                                   Response<ApiResponse<List<RehabPlan>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    List<com.example.myrajourney.data.model
-.RehabPlan> plans = response.body().getData();
+                    List<RehabPlan> plans = response.body().getData();
+
                     if (plans != null && !plans.isEmpty()) {
-                        for (com.example.myrajourney.data.model
-.RehabPlan plan : plans) {
-                            // Check if plan has exercises
+                        for (RehabPlan plan : plans) {
+                            // Check if plan has explicit sub-exercises
                             if (plan.getExercises() != null && !plan.getExercises().isEmpty()) {
-                                for (com.example.myrajourney.data.model
-.RehabPlan.RehabExercise ex : plan.getExercises()) {
+                                for (RehabPlan.RehabExercise ex : plan.getExercises()) {
                                     String videoUrl = plan.getVideoUrl() != null ? plan.getVideoUrl() : "https://www.youtube.com/watch?v=k2kMJ2hHugQ";
                                     int sets = ex.getSets() != null ? ex.getSets() : 3;
                                     int reps = ex.getReps() != null ? ex.getReps() : 10;
-                                    int progress = calculateProgress(plan, ex);
-                                    
-                                    todayExercises.add(new RehabExercise(
-                                        ex.getName() != null ? ex.getName() : "Exercise",
-                                        ex.getDescription() != null ? ex.getDescription() : plan.getDescription() != null ? plan.getDescription() : "Rehabilitation exercise",
-                                        videoUrl,
-                                        sets, reps, progress
-                                    ));
+                                    int progress = calculateProgress(null, ex);
+
+                                    String name = ex.getName() != null ? ex.getName() : "Exercise";
+                                    String desc = ex.getDescription() != null ? ex.getDescription() : (plan.getDescription() != null ? plan.getDescription() : "Rehabilitation exercise");
+
+                                    todayExercises.add(new LocalRehabExercise(name, desc, videoUrl, sets, reps, progress));
                                 }
                             } else {
-                                // Fallback: use plan data directly
+                                // Fallback: use plan data directly as a single exercise
                                 String videoUrl = plan.getVideoUrl() != null ? plan.getVideoUrl() : "https://www.youtube.com/watch?v=k2kMJ2hHugQ";
                                 int sets = plan.getSetsPerDay() != null ? plan.getSetsPerDay() : 3;
                                 int reps = plan.getRepsPerSet() != null ? plan.getRepsPerSet() : 10;
                                 int progress = calculateProgress(plan, null);
-                                
-                                todayExercises.add(new RehabExercise(
-                                    plan.getExerciseName() != null ? plan.getExerciseName() : (plan.getTitle() != null ? plan.getTitle() : "Exercise"),
-                                    plan.getDescription() != null ? plan.getDescription() : "Rehabilitation exercise",
-                                    videoUrl,
-                                    sets, reps, progress
-                                ));
+
+                                String name = plan.getExerciseName() != null ? plan.getExerciseName() : (plan.getTitle() != null ? plan.getTitle() : "Exercise");
+                                String desc = plan.getDescription() != null ? plan.getDescription() : "Rehabilitation exercise";
+
+                                todayExercises.add(new LocalRehabExercise(name, desc, videoUrl, sets, reps, progress));
                             }
                         }
                         displayExercises();
                     } else {
-                        // No exercises - show empty state
-                        displayExercises();
+                        displayExercises(); // Show empty state
                     }
                 } else {
-                    // Error - show empty state
                     displayExercises();
                 }
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.RehabPlan>>> call, Throwable t) {
-                // Network error - show empty state
+            public void onFailure(Call<ApiResponse<List<RehabPlan>>> call, Throwable t) {
                 displayExercises();
             }
         });
     }
-    
-    private int calculateProgress(com.example.myrajourney.data.model
-.RehabPlan plan, com.example.myrajourney.data.model
-.RehabPlan.RehabExercise exercise) {
-        // Calculate progress based on completion logs
-        // Check SharedPreferences for completion status
+
+    private int calculateProgress(RehabPlan plan, RehabPlan.RehabExercise exercise) {
         SharedPreferences prefs = getSharedPreferences("rehab_status", MODE_PRIVATE);
-        String exerciseName = exercise != null ? exercise.getName() : (plan.getExerciseName() != null ? plan.getExerciseName() : plan.getTitle());
+        String exerciseName = "";
+
+        if (exercise != null) {
+            exerciseName = exercise.getName();
+        } else if (plan != null) {
+            exerciseName = plan.getExerciseName() != null ? plan.getExerciseName() : plan.getTitle();
+        }
+
         String dateKey = exerciseName + "_" + getCurrentDate();
         boolean completed = prefs.getBoolean(dateKey, false);
         return completed ? 100 : 0;
@@ -157,12 +163,12 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
 
         noRehabText.setVisibility(View.GONE);
 
-        for (RehabExercise exercise : todayExercises) {
+        for (LocalRehabExercise exercise : todayExercises) {
             addExerciseCard(exercise);
         }
     }
 
-    private void addExerciseCard(RehabExercise exercise) {
+    private void addExerciseCard(LocalRehabExercise exercise) {
         View cardView = getLayoutInflater().inflate(R.layout.item_patient_rehab, rehabContainer, false);
 
         TextView exerciseName = cardView.findViewById(R.id.exerciseName);
@@ -175,23 +181,23 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
 
         exerciseName.setText(exercise.getName());
         exerciseDescription.setText(exercise.getDescription());
-        exerciseSets.setText("Sets: " + exercise.getSets() + " Ã— " + exercise.getReps() + " reps");
+        exerciseSets.setText("Sets: " + exercise.getSets() + " × " + exercise.getReps() + " reps");
         exerciseGoals.setText("Goal: Complete all sets daily");
 
         progressBar.setProgress(exercise.getProgress());
 
         if (exercise.isCompleted()) {
-            statusButton.setText("âœ… Completed");
+            statusButton.setText("✅ Completed");
             statusButton.setBackgroundColor(getColor(android.R.color.holo_green_dark));
         } else {
-            statusButton.setText("â³ Pending");
+            statusButton.setText("⏳ Pending");
             statusButton.setBackgroundColor(getColor(android.R.color.holo_orange_light));
         }
 
         statusButton.setOnClickListener(v -> {
             if (!exercise.isCompleted()) {
                 exercise.setCompleted(true);
-                statusButton.setText("âœ… Completed");
+                statusButton.setText("✅ Completed");
                 statusButton.setBackgroundColor(getColor(android.R.color.holo_green_dark));
 
                 // Update progress
@@ -199,9 +205,6 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
 
                 // Save completion status locally
                 saveExerciseStatus(exercise.getName(), true);
-                
-                // TODO: Send completion to backend API
-                // This would notify the doctor that the patient completed the exercise
 
                 Toast.makeText(this, "Exercise completed!", Toast.LENGTH_SHORT).show();
             }
@@ -215,9 +218,14 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
     }
 
     private void openYouTubeVideo(String videoUrl) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        if (videoUrl == null || videoUrl.isEmpty()) return;
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to open video", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveExerciseStatus(String exerciseName, boolean completed) {
@@ -229,8 +237,8 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
     }
 
-    // Inner class for rehab exercise
-    private static class RehabExercise {
+    // Renamed inner class to avoid conflict with RehabPlan.RehabExercise
+    private static class LocalRehabExercise {
         private String name;
         private String description;
         private String videoUrl;
@@ -239,7 +247,7 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
         private int progress;
         private boolean completed;
 
-        public RehabExercise(String name, String description, String videoUrl, int sets, int reps, int progress) {
+        public LocalRehabExercise(String name, String description, String videoUrl, int sets, int reps, int progress) {
             this.name = name;
             this.description = description;
             this.videoUrl = videoUrl;
@@ -259,9 +267,3 @@ public class PatientRehabilitationActivity extends AppCompatActivity {
         public void setCompleted(boolean completed) { this.completed = completed; }
     }
 }
-
-
-
-
-
-

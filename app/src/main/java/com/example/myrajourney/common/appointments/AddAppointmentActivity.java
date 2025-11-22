@@ -3,11 +3,36 @@ package com.example.myrajourney.common.appointments;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.*;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.session.TokenManager;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.Appointment;
+import com.example.myrajourney.data.model.AppointmentRequest;
+import com.example.myrajourney.data.model.User;
+import com.example.myrajourney.patient.appointments.PatientAppointmentsActivity;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+// ---------------------
 
 public class AddAppointmentActivity extends AppCompatActivity {
 
@@ -17,7 +42,7 @@ public class AddAppointmentActivity extends AppCompatActivity {
     String selectedDate = "";
     List<String> availableTimeSlots;
 
-    static List<Appointment> allAppointments = new ArrayList<>(); // shared list
+    // static List<Appointment> allAppointments = new ArrayList<>(); // Removed: Not needed if using backend API
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +61,9 @@ public class AddAppointmentActivity extends AppCompatActivity {
                 "10:00 AM - 10:30 AM",
                 "10:30 AM - 11:00 AM",
                 "11:00 AM - 11:30 AM",
-                "11:30 AM - 12:00 PM"
+                "11:30 AM - 12:00 PM",
+                "02:00 PM - 02:30 PM",
+                "02:30 PM - 03:00 PM"
         );
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -59,6 +86,8 @@ public class AddAppointmentActivity extends AppCompatActivity {
                         selectedDate = sdf.format(selected.getTime());
                         btnPickDate.setText(selectedDate);
                     }, mYear, mMonth, mDay);
+            // Optional: Disable past dates
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
             datePickerDialog.show();
         });
 
@@ -68,8 +97,8 @@ public class AddAppointmentActivity extends AppCompatActivity {
             String reason = etReason.getText().toString().trim();
             String timeSlot = spinnerTimeSlot.getSelectedItem().toString();
 
-            if (patientName.isEmpty() || doctorName.isEmpty() || selectedDate.isEmpty()) {
-                Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
+            if (selectedDate.isEmpty()) {
+                Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -88,39 +117,44 @@ public class AddAppointmentActivity extends AppCompatActivity {
             return;
         }
 
-        String startTime = parseDateTime(selectedDate, timeSlot.split(" - ")[0].trim());
-        String endTime = parseDateTime(selectedDate, timeSlot.split(" - ").length > 1 ? timeSlot.split(" - ")[1].trim() : timeSlot.split(" - ")[0].trim());
+        // Parse start and end time
+        String[] times = timeSlot.split(" - ");
+        String startTimeStr = times[0].trim();
+        String endTimeStr = times.length > 1 ? times[1].trim() : startTimeStr; // Fallback
 
+        String startTime = parseDateTime(selectedDate, startTimeStr);
+        String endTime = parseDateTime(selectedDate, endTimeStr);
+
+        // Determine IDs based on role
         String patientId = "PATIENT".equals(currentUserRole) ? currentUserId : null;
         String doctorId = "DOCTOR".equals(currentUserRole) ? currentUserId : null;
 
+        // If ID is missing (e.g. Patient creating appt needs Doctor ID, or Admin creating for both)
         if (patientId == null || doctorId == null) {
             findUserIdsAndSave(patientName, doctorName, reason, startTime, endTime);
             return;
         }
 
-        com.example.myrajourney.data.model.AppointmentRequest request =
-                new com.example.myrajourney.data.model.AppointmentRequest(
-                        patientId,
-                        doctorId,
-                        reason.isEmpty() ? "Appointment" : reason,
-                        reason,
-                        startTime,
-                        endTime
-                );
+        // Create request
+        AppointmentRequest request = new AppointmentRequest(
+                patientId,
+                doctorId,
+                reason.isEmpty() ? "General Checkup" : reason, // Default title/type
+                reason,
+                startTime,
+                endTime
+        );
 
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.Appointment>> call =
-                apiService.createAppointment(request);
+        ApiService apiService = ApiClient.getApiService(this);
+        Call<ApiResponse<Appointment>> call = apiService.createAppointment(request);
 
-        call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.Appointment>>() {
+        call.enqueue(new Callback<ApiResponse<Appointment>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.Appointment>> call,
-                                   retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.Appointment>> response) {
+            public void onResponse(Call<ApiResponse<Appointment>> call, Response<ApiResponse<Appointment>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     Toast.makeText(AddAppointmentActivity.this, "Appointment created successfully", Toast.LENGTH_SHORT).show();
                     resetForm();
-                    startActivity(new Intent(AddAppointmentActivity.this, PatientAppointmentsActivity.class));
+                    // Navigate back or to list
                     finish();
                 } else {
                     String errorMsg = "Failed to create appointment";
@@ -132,94 +166,75 @@ public class AddAppointmentActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.Appointment>> call, Throwable t) {
-                Toast.makeText(AddAppointmentActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<ApiResponse<Appointment>> call, Throwable t) {
+                Toast.makeText(AddAppointmentActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void findUserIdsAndSave(String patientName, String doctorName, String reason, String startTime, String endTime) {
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.User>>> call = apiService.getAllPatients();
+        ApiService apiService = ApiClient.getApiService(this);
+        // Assuming getAllPatients actually returns all users or you have an endpoint for searching
+        // You might need a specific endpoint like getUsers() if getAllPatients only returns patients
+        Call<ApiResponse<List<User>>> call = apiService.getAllPatients();
 
-        call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.User>>>() {
+        call.enqueue(new Callback<ApiResponse<List<User>>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.User>>> call,
-                                   retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.User>>> response) {
-                String patientId = null;
-                String doctorId = null;
-
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    List<com.example.myrajourney.data.model
-.User> users = response.body().getData();
-                    if (users != null) {
-                        for (com.example.myrajourney.data.model
-.User user : users) {
-                            if (user.getName() != null && user.getName().equalsIgnoreCase(patientName) && "PATIENT".equals(user.getRole())) {
-                                patientId = user.getIdString();
-                            }
-                            if (user.getName() != null && user.getName().equalsIgnoreCase(doctorName) && "DOCTOR".equals(user.getRole())) {
-                                doctorId = user.getIdString();
-                            }
-                        }
-                    }
-                }
+            public void onResponse(Call<ApiResponse<List<User>>> call, Response<ApiResponse<List<User>>> response) {
+                String foundPatientId = null;
+                String foundDoctorId = null;
 
                 TokenManager tokenManager = TokenManager.getInstance(AddAppointmentActivity.this);
                 String currentUserId = tokenManager.getUserId();
                 String currentUserRole = tokenManager.getUserRole();
 
-                if (patientId == null && "PATIENT".equals(currentUserRole)) {
-                    patientId = currentUserId;
-                }
-                if (doctorId == null && "DOCTOR".equals(currentUserRole)) {
-                    doctorId = currentUserId;
+                // Pre-fill known ID
+                if ("PATIENT".equals(currentUserRole)) foundPatientId = currentUserId;
+                if ("DOCTOR".equals(currentUserRole)) foundDoctorId = currentUserId;
+
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    List<User> users = response.body().getData();
+                    if (users != null) {
+                        for (User user : users) {
+                            // Match Patient Name if we don't have ID yet
+                            if (foundPatientId == null && user.getName() != null
+                                    && user.getName().equalsIgnoreCase(patientName)
+                                    && "PATIENT".equals(user.getRole())) {
+                                foundPatientId = String.valueOf(user.getId());
+                            }
+                            // Match Doctor Name if we don't have ID yet
+                            if (foundDoctorId == null && user.getName() != null
+                                    && user.getName().equalsIgnoreCase(doctorName)
+                                    && "DOCTOR".equals(user.getRole())) {
+                                foundDoctorId = String.valueOf(user.getId());
+                            }
+                        }
+                    }
                 }
 
-                if (patientId == null || doctorId == null) {
-                    Toast.makeText(AddAppointmentActivity.this, "Could not find patient or doctor. Please check names.", Toast.LENGTH_LONG).show();
+                if (foundPatientId == null || foundDoctorId == null) {
+                    Toast.makeText(AddAppointmentActivity.this,
+                            "Could not find matching user (Patient/Doctor). Check spelling.",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
-                com.example.myrajourney.data.model
-.AppointmentRequest request =
-                        new com.example.myrajourney.data.model
-.AppointmentRequest(
-                                patientId,
-                                doctorId,
-                                reason.isEmpty() ? "Appointment" : reason,
-                                reason,
-                                startTime,
-                                endTime
-                        );
+                // Proceed to save
+                AppointmentRequest request = new AppointmentRequest(
+                        foundPatientId,
+                        foundDoctorId,
+                        reason.isEmpty() ? "General Checkup" : reason,
+                        reason,
+                        startTime,
+                        endTime
+                );
 
-                retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Appointment>> createCall =
-                        apiService.createAppointment(request);
-
-                createCall.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Appointment>>() {
+                apiService.createAppointment(request).enqueue(new Callback<ApiResponse<Appointment>>() {
                     @Override
-                    public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Appointment>> call,
-                                           retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Appointment>> response) {
+                    public void onResponse(Call<ApiResponse<Appointment>> call, Response<ApiResponse<Appointment>> response) {
                         if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                             Toast.makeText(AddAppointmentActivity.this, "Appointment created successfully", Toast.LENGTH_SHORT).show();
                             resetForm();
-                            startActivity(new Intent(AddAppointmentActivity.this, PatientAppointmentsActivity.class));
                             finish();
                         } else {
                             Toast.makeText(AddAppointmentActivity.this, "Failed to create appointment", Toast.LENGTH_SHORT).show();
@@ -227,18 +242,14 @@ public class AddAppointmentActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.Appointment>> call, Throwable t) {
+                    public void onFailure(Call<ApiResponse<Appointment>> call, Throwable t) {
                         Toast.makeText(AddAppointmentActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
 
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<List<com.example.myrajourney.data.model
-.User>>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<List<User>>> call, Throwable t) {
                 Toast.makeText(AddAppointmentActivity.this, "Failed to find users. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -263,21 +274,17 @@ public class AddAppointmentActivity extends AppCompatActivity {
             SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             return outputFormat.format(cal.getTime());
         } catch (Exception e) {
+            // Fallback to current time if parse fails
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             return format.format(new Date());
         }
     }
 
     private void resetForm() {
-        etPatientName.setText("");
-        etDoctorName.setText("");
-        etReason.setText("");
+        if (etPatientName != null) etPatientName.setText("");
+        if (etDoctorName != null) etDoctorName.setText("");
+        if (etReason != null) etReason.setText("");
         btnPickDate.setText("Pick Date");
+        selectedDate = "";
     }
 }
-
-
-
-
-
-

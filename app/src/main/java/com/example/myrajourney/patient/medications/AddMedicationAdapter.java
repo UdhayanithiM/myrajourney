@@ -10,6 +10,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Medication;
+// ---------------------
+
 import java.util.List;
 
 public class AddMedicationAdapter extends RecyclerView.Adapter<AddMedicationAdapter.MedViewHolder> {
@@ -34,10 +39,19 @@ public class AddMedicationAdapter extends RecyclerView.Adapter<AddMedicationAdap
         Medication med = medList.get(position);
 
         holder.name.setText(med.getName());
-        holder.details.setText(med.getDosage() + ", " + med.getFrequency() + ", " + med.getDuration());
+        // Updated string concatenation to be safe if fields are null
+        String detailsText = (med.getDosage() != null ? med.getDosage() : "") + ", " +
+                (med.getFrequency() != null ? med.getFrequency() : "") + ", " +
+                (med.getDuration() != null ? med.getDuration() : "");
+        holder.details.setText(detailsText);
+
+        // Handle checkbox state safely
+        holder.checkbox.setOnCheckedChangeListener(null); // Remove listener to avoid recycling bugs
         holder.checkbox.setChecked(med.isTakenToday());
 
-        holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> med.setTakenToday(isChecked));
+        holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            med.setTakenToday(isChecked);
+        });
     }
 
     @Override
@@ -57,9 +71,3 @@ public class AddMedicationAdapter extends RecyclerView.Adapter<AddMedicationAdap
         }
     }
 }
-
-
-
-
-
-

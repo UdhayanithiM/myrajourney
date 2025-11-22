@@ -10,8 +10,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.Doctor;
 import com.example.myrajourney.data.model.User;
+import com.example.myrajourney.patient.dashboard.PatientAssignmentAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -215,9 +218,3 @@ public class AssignPatientToDoctorActivity extends AppCompatActivity {
         });
     }
 }
-
-
-
-
-
-

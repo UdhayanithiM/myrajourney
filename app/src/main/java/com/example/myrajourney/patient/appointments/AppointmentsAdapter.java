@@ -9,6 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Appointment;
+// ---------------------
+
 public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapter.ViewHolder> {
 
     private Context context;
@@ -29,9 +34,19 @@ public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Appointment appointment = appointments.get(position);
-        holder.patientName.setText(appointment.getPatientName());
+
+        // Using safe checks in case fields are null
+        if (appointment.getPatientName() != null) {
+            holder.patientName.setText(appointment.getPatientName());
+        } else {
+            holder.patientName.setText("Unknown Patient");
+        }
+
         holder.time.setText(appointment.getTimeSlot());
-        holder.type.setText(appointment.getAppointmentType());
+
+        // 'getTitle()' corresponds to the Appointment Type/Reason in your model
+        holder.type.setText(appointment.getTitle());
+
         holder.date.setText(appointment.getDate());
     }
 
@@ -45,6 +60,7 @@ public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Ensure these IDs exist in your item_appointment.xml
             patientName = itemView.findViewById(R.id.patient_name);
             time = itemView.findViewById(R.id.appointment_time);
             type = itemView.findViewById(R.id.appointment_type);
@@ -52,9 +68,3 @@ public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapte
         }
     }
 }
-
-
-
-
-
-

@@ -1,7 +1,6 @@
 package com.example.myrajourney.patient.reports;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +8,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Report;
+// ---------------------
 
 public class ReportsAdapter extends RecyclerView.Adapter<ReportsAdapter.ViewHolder> {
 
@@ -43,25 +47,31 @@ public class ReportsAdapter extends RecyclerView.Adapter<ReportsAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Report report = reports.get(position);
 
-        // Check if this is a patient report (has fileUri) or doctor report (has patientName)
-        if (report.getFileUri() != null && !report.getFileUri().isEmpty()) {
-            // This is a patient report
-            holder.reportName.setText(report.getName());
-            holder.reportDate.setText(report.getDate());
-            holder.reportFile.setText(report.getFileUri());
-            holder.patientName.setText("Patient Report");
-        } else {
-            // This is a doctor report
-            holder.patientName.setText(report.getPatientName());
-            holder.reportType.setText(report.getReportType());
-            holder.date.setText(report.getDate());
-            holder.status.setText(report.getStatus());
+        // Logic: If file URL exists, treat as Patient Report. Otherwise, Doctor Report logic.
+        boolean isPatientReport = (report.getFileUrl() != null && !report.getFileUrl().isEmpty());
 
-            // Set status color
-            if (report.getStatus() != null) {
-                if (report.getStatus().equals("Normal")) {
+        if (isPatientReport) {
+            // Patient View Binding
+            if (holder.reportName != null) holder.reportName.setText(report.getTitle());
+            if (holder.reportDate != null) holder.reportDate.setText(report.getCreatedAt());
+            if (holder.reportFile != null) holder.reportFile.setText(report.getFileUrl());
+            if (holder.patientName != null) holder.patientName.setText("Patient Report");
+        } else {
+            // Doctor View Binding
+            if (holder.patientName != null)
+                holder.patientName.setText(report.getPatientName() != null ? report.getPatientName() : "Unknown Patient");
+
+            if (holder.reportType != null) holder.reportType.setText(report.getTitle());
+            if (holder.date != null) holder.date.setText(report.getCreatedAt());
+
+            if (holder.status != null) {
+                String status = report.getStatus() != null ? report.getStatus() : "Pending";
+                holder.status.setText(status);
+
+                // Set status color
+                if ("Normal".equalsIgnoreCase(status) || "Reviewed".equalsIgnoreCase(status)) {
                     holder.status.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
-                } else if (report.getStatus().equals("Abnormal")) {
+                } else if ("Abnormal".equalsIgnoreCase(status) || "Action Required".equalsIgnoreCase(status)) {
                     holder.status.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
                 } else {
                     holder.status.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
@@ -83,24 +93,22 @@ public class ReportsAdapter extends RecyclerView.Adapter<ReportsAdapter.ViewHold
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView reportName, reportDate, reportFile, patientName, reportType, date, status;
+        // Fields for both possible layouts (Patient vs Doctor item)
+        TextView reportName, reportDate, reportFile; // Patient Layout fields
+        TextView patientName, reportType, date, status; // Doctor Layout fields
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Try to find all possible TextViews that might exist in the layout
+            // Use findViewById for all potential IDs. If the ID isn't in the layout, it returns null.
+            // Safe null-checks are handled in onBindViewHolder.
             reportName = itemView.findViewById(R.id.report_name);
             reportDate = itemView.findViewById(R.id.report_date);
             reportFile = itemView.findViewById(R.id.report_file);
+
             patientName = itemView.findViewById(R.id.patient_name);
             reportType = itemView.findViewById(R.id.report_type);
-            date = itemView.findViewById(R.id.date);
+            date = itemView.findViewById(R.id.date); // Some layouts use 'date', others 'report_date'
             status = itemView.findViewById(R.id.status);
         }
     }
 }
-
-
-
-
-
-

@@ -4,19 +4,32 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.Report;
+import com.example.myrajourney.patient.reports.ReportsAdapter;
+import com.example.myrajourney.patient.reports.ReportDetailsActivity;
+import com.example.myrajourney.patient.reports.UploadReportActivity;
+import com.example.myrajourney.admin.dashboard.SettingsActivity;
+// ---------------------
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -33,6 +46,9 @@ public class DoctorReportsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Apply Theme
+        ThemeManager.applyTheme(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_doctor_reports);
 
@@ -66,15 +82,17 @@ public class DoctorReportsActivity extends AppCompatActivity {
         adapter = new ReportsAdapter(this, filteredList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
-        
+
         // Set click listener to open report details
         adapter.setOnReportClickListener(report -> {
             Intent intent = new Intent(DoctorReportsActivity.this, ReportDetailsActivity.class);
+            // Ensure getters match the Report model
             intent.putExtra("patient_name", report.getPatientName());
-            intent.putExtra("report_type", report.getReportType());
+            intent.putExtra("report_type", report.getTitle()); // Title usually serves as type
             intent.putExtra("report_date", report.getDate());
             intent.putExtra("report_status", report.getStatus());
             intent.putExtra("report_id", report.getId());
+            intent.putExtra("report_file", report.getFileUrl());
             startActivity(intent);
         });
 
@@ -86,24 +104,34 @@ public class DoctorReportsActivity extends AppCompatActivity {
     }
 
     private void loadReportsFromBackend() {
-        ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        Call<ApiResponse<List<com.example.myrajourney.data.model.Report>>> call = apiService.getReports();
-        
-        call.enqueue(new Callback<ApiResponse<List<com.example.myrajourney.data.model.Report>>>() {
+        ApiService apiService = ApiClient.getApiService(this);
+        Call<ApiResponse<List<Report>>> call = apiService.getReports();
+
+        call.enqueue(new Callback<ApiResponse<List<Report>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<com.example.myrajourney.data.model.Report>>> call, Response<ApiResponse<List<com.example.myrajourney.data.model.Report>>> response) {
+            public void onResponse(Call<ApiResponse<List<Report>>> call, Response<ApiResponse<List<Report>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    List<com.example.myrajourney.data.model.Report> apiReports = response.body().getData();
+                    List<Report> apiReports = response.body().getData();
                     if (apiReports != null) {
                         reports.clear();
                         // Convert API reports to local Report format
-                        for (com.example.myrajourney.data.model.Report apiReport : apiReports) {
+                        for (Report apiReport : apiReports) {
+                            // Extract data safely
                             String reportId = apiReport.getId() != null ? apiReport.getId() : "";
                             String patientName = apiReport.getPatientName() != null ? apiReport.getPatientName() : "Unknown";
                             String title = apiReport.getTitle() != null ? apiReport.getTitle() : "Report";
-                            String date = formatDate(apiReport.getUploadedAt());
+                            String date = formatDate(apiReport.getCreatedAt());
                             String status = determineStatus(apiReport);
-                            Report report = new Report(reportId, patientName, title, date, status);
+
+                            // Use setters to build the object to avoid constructor mismatch issues
+                            Report report = new Report();
+                            report.setId(reportId);
+                            report.setPatientName(patientName);
+                            report.setTitle(title);
+                            report.setCreatedAt(date); // Using setCreatedAt to store formatted date
+                            report.setStatus(status);
+                            report.setFileUrl(apiReport.getFileUrl());
+
                             reports.add(report);
                         }
                         filter(searchBar.getText().toString());
@@ -116,11 +144,11 @@ public class DoctorReportsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<List<com.example.myrajourney.data.model.Report>>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<List<Report>>> call, Throwable t) {
                 // On failure, show empty list
                 reports.clear();
                 filter("");
-                android.util.Log.e("DoctorReports", "Failed to load reports", t);
+                Log.e("DoctorReports", "Failed to load reports", t);
             }
         });
     }
@@ -139,8 +167,11 @@ public class DoctorReportsActivity extends AppCompatActivity {
         }
     }
 
-    private String determineStatus(com.example.myrajourney.data.model.Report apiReport) {
-        // You can add logic here to determine status based on report data
+    private String determineStatus(Report apiReport) {
+        // Use logic based on your API data, or default to "Normal" if status is missing
+        if (apiReport.getStatus() != null && !apiReport.getStatus().isEmpty()) {
+            return apiReport.getStatus();
+        }
         return "Normal";
     }
 
@@ -166,9 +197,12 @@ public class DoctorReportsActivity extends AppCompatActivity {
         } else {
             String lowerCaseQuery = query.toLowerCase();
             for (Report r : reports) {
-                if ((r.getPatientName() != null && r.getPatientName().toLowerCase().contains(lowerCaseQuery)) ||
-                        (r.getReportType() != null && r.getReportType().toLowerCase().contains(lowerCaseQuery)) ||
-                        (r.getStatus() != null && r.getStatus().toLowerCase().contains(lowerCaseQuery))) {
+                // Use safe checks for nulls
+                boolean matchPatient = r.getPatientName() != null && r.getPatientName().toLowerCase().contains(lowerCaseQuery);
+                boolean matchType = r.getTitle() != null && r.getTitle().toLowerCase().contains(lowerCaseQuery);
+                boolean matchStatus = r.getStatus() != null && r.getStatus().toLowerCase().contains(lowerCaseQuery);
+
+                if (matchPatient || matchType || matchStatus) {
                     filteredList.add(r);
                 }
             }
@@ -178,9 +212,3 @@ public class DoctorReportsActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
-
-
-

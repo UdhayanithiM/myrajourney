@@ -1,5 +1,7 @@
 package com.example.myrajourney.patient.reports;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,12 +10,22 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myrajourney.R;
+import com.example.myrajourney.data.model.Report;
+
 import java.util.List;
 
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportViewHolder> {
 
+    private Context context;
     private List<Report> reportList;
 
+    public ReportAdapter(Context context, List<Report> reportList) {
+        this.context = context;
+        this.reportList = reportList;
+    }
+
+    // Constructor compatible with just list if Context isn't strictly needed for layout inflater
     public ReportAdapter(List<Report> reportList) {
         this.reportList = reportList;
     }
@@ -21,15 +33,27 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     @NonNull
     @Override
     public ReportViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.report_item, parent, false);
+        if (context == null) context = parent.getContext();
+        View view = LayoutInflater.from(context).inflate(R.layout.item_report, parent, false);
         return new ReportViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
         Report report = reportList.get(position);
-        holder.name.setText(report.getName());
-        holder.date.setText(report.getDate());
+
+        // Using getters from the Report model
+        holder.reportName.setText(report.getName());
+        holder.reportDate.setText(report.getDate());
+        holder.reportFile.setText(report.getFileUri() != null ? report.getFileUri() : "No file attached");
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ReportDetailsActivity.class);
+            intent.putExtra("report_name", report.getName());
+            intent.putExtra("report_date", report.getDate());
+            intent.putExtra("report_file", report.getFileUri());
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -43,18 +67,13 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     }
 
     static class ReportViewHolder extends RecyclerView.ViewHolder {
-        TextView name, date;
+        TextView reportName, reportDate, reportFile;
 
         public ReportViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.reportName);
-            date = itemView.findViewById(R.id.reportDate);
+            reportName = itemView.findViewById(R.id.report_name);
+            reportDate = itemView.findViewById(R.id.report_date);
+            reportFile = itemView.findViewById(R.id.report_file);
         }
     }
 }
-
-
-
-
-
-

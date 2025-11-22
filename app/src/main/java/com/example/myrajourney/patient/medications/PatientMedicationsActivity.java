@@ -1,14 +1,13 @@
 package com.example.myrajourney.patient.medications;
 
 import android.app.AlarmManager;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -16,11 +15,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 
+// --- ADDED IMPORTS ---
+import com.example.myrajourney.R;
+import com.example.myrajourney.auth.LoginActivity;
+import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
-import com.example.myrajourney.data.model
-.ApiResponse;
+import com.example.myrajourney.core.session.SessionManager;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.Medication;
+import com.example.myrajourney.data.model.MedicationLog;
+import com.example.myrajourney.data.model.MedicationLogRequest;
+// ---------------------
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,8 +44,7 @@ public class PatientMedicationsActivity extends AppCompatActivity {
     private LinearLayout medicationsContainer;
     private TextView noMedicationsText;
     private List<MedicationSchedule> todayMedications;
-    private List<com.example.myrajourney.data.model
-.Medication> allMedications;
+    private List<Medication> allMedications;
     private SessionManager sessionManager;
 
     @Override
@@ -50,7 +55,7 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
 
         // Check if user is logged in
-        if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
+        if (!sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
@@ -58,7 +63,6 @@ public class PatientMedicationsActivity extends AppCompatActivity {
 
         initializeViews();
         loadTodayMedications();
-        displayMedications();
     }
 
     private void initializeViews() {
@@ -71,82 +75,68 @@ public class PatientMedicationsActivity extends AppCompatActivity {
 
     private void loadTodayMedications() {
         todayMedications = new ArrayList<>();
-        
         // Load medications from API
         loadMedicationsFromAPI();
     }
-    
+
     private void loadMedicationsFromAPI() {
-        ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        Call<ApiResponse<List<com.example.myrajourney.data.model
-.Medication>>> call = apiService.getPatientMedications();
-        
-        call.enqueue(new Callback<ApiResponse<List<com.example.myrajourney.data.model
-.Medication>>>() {
+        ApiService apiService = ApiClient.getApiService(this);
+        Call<ApiResponse<List<Medication>>> call = apiService.getPatientMedications();
+
+        call.enqueue(new Callback<ApiResponse<List<Medication>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<com.example.myrajourney.data.model
-.Medication>>> call, 
-                                 Response<ApiResponse<List<com.example.myrajourney.data.model
-.Medication>>> response) {
+            public void onResponse(Call<ApiResponse<List<Medication>>> call,
+                                   Response<ApiResponse<List<Medication>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    List<com.example.myrajourney.data.model
-.Medication> medications = response.body().getData();
+                    List<Medication> medications = response.body().getData();
                     allMedications = medications != null ? medications : new ArrayList<>();
+
                     if (medications != null && !medications.isEmpty()) {
                         // Convert API medications to local MedicationSchedule
-                        for (com.example.myrajourney.data.model
-.Medication med : medications) {
-                            if (med.isActive()) {
-                                // Parse frequency to get time (simplified - you may need more complex parsing)
+                        for (Medication med : medications) {
+                            // Check status instead of isActive() (based on your Medication model)
+                            if ("Ongoing".equalsIgnoreCase(med.getStatus()) || "Active".equalsIgnoreCase(med.getStatus())) {
                                 String time = parseTimeFromFrequency(med.getFrequency());
+
+                                // Check if completed locally today
+                                boolean isCompleted = checkLocalCompletionStatus(med.getName());
+
                                 todayMedications.add(new MedicationSchedule(
-                                    med.getMedicationName(),
-                                    med.getDosage(),
-                                    time,
-                                    false // Check from logs
+                                        med.getName(), // Fixed: getName() instead of getMedicationName()
+                                        med.getDosage(),
+                                        time,
+                                        isCompleted
                                 ));
                             }
                         }
                         displayMedications();
                     } else {
-                        // No medications - show empty state
-                        displayMedications();
+                        displayMedications(); // Show empty state
                     }
                 } else {
-                    // Error loading - show empty state
                     allMedications = new ArrayList<>();
                     displayMedications();
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<List<com.example.myrajourney.data.model
-.Medication>>> call, Throwable t) {
-                // Network error - show empty state or fallback
+            public void onFailure(Call<ApiResponse<List<Medication>>> call, Throwable t) {
+                Toast.makeText(PatientMedicationsActivity.this, "Failed to load medications", Toast.LENGTH_SHORT).show();
                 displayMedications();
             }
         });
     }
-    
+
     private String parseTimeFromFrequency(String frequency) {
-        // Simple parsing - in real app, you'd parse the frequency field properly
         if (frequency == null || frequency.isEmpty()) {
             return "8:00 AM"; // Default
         }
-        
         String lowerFreq = frequency.toLowerCase();
-        
-        if (lowerFreq.contains("morning") || lowerFreq.contains("8:00") || lowerFreq.contains("08:00")) {
-            return "8:00 AM";
-        } else if (lowerFreq.contains("afternoon") || lowerFreq.contains("2:00") || lowerFreq.contains("14:00")) {
-            return "2:00 PM";
-        } else if (lowerFreq.contains("evening") || lowerFreq.contains("20:00") || lowerFreq.contains("8:00 pm")) {
-            return "8:00 PM";
-        } else if (lowerFreq.contains("night") || lowerFreq.contains("22:00")) {
-            return "10:00 PM";
-        }
-        
-        return "8:00 AM"; // Default
+        if (lowerFreq.contains("morning") || lowerFreq.contains("once")) return "8:00 AM";
+        else if (lowerFreq.contains("afternoon")) return "2:00 PM";
+        else if (lowerFreq.contains("evening") || lowerFreq.contains("night")) return "8:00 PM";
+
+        return "8:00 AM";
     }
 
     private void displayMedications() {
@@ -178,24 +168,26 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         medTime.setText("Due: " + medication.getTime());
 
         if (medication.isCompleted()) {
-            statusButton.setText("âœ… Completed");
+            statusButton.setText("✅ Completed");
             statusButton.setBackgroundColor(getColor(android.R.color.holo_green_dark));
             setReminderBtn.setVisibility(View.GONE);
+            statusButton.setEnabled(false); // Prevent multiple clicks
         } else {
-            statusButton.setText("â³ Pending");
+            statusButton.setText("⏳ Pending");
             statusButton.setBackgroundColor(getColor(android.R.color.holo_orange_light));
         }
 
         statusButton.setOnClickListener(v -> {
             if (!medication.isCompleted()) {
                 medication.setCompleted(true);
-                statusButton.setText("âœ… Completed");
+                statusButton.setText("✅ Completed");
                 statusButton.setBackgroundColor(getColor(android.R.color.holo_green_dark));
                 setReminderBtn.setVisibility(View.GONE);
+                statusButton.setEnabled(false);
 
                 // Save completion status locally
                 saveMedicationStatus(medication.getName(), true);
-                
+
                 // Log medication intake to backend
                 logMedicationIntake(medication.getName(), medication.getDosage());
 
@@ -211,7 +203,6 @@ public class PatientMedicationsActivity extends AppCompatActivity {
     }
 
     private void setMedicationReminder(MedicationSchedule medication) {
-        // Parse time and set alarm
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
             Date time = sdf.parse(medication.getTime());
@@ -219,11 +210,9 @@ public class PatientMedicationsActivity extends AppCompatActivity {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(time);
 
-            // Set for today
             Calendar today = Calendar.getInstance();
             calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
 
-            // If time has passed today, set for tomorrow
             if (calendar.before(today)) {
                 calendar.add(Calendar.DAY_OF_MONTH, 1);
             }
@@ -234,7 +223,7 @@ public class PatientMedicationsActivity extends AppCompatActivity {
             intent.putExtra("medication_dosage", medication.getDosage());
 
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, medication.hashCode(),
-                intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
@@ -249,6 +238,11 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         }
     }
 
+    private boolean checkLocalCompletionStatus(String medicationName) {
+        SharedPreferences prefs = getSharedPreferences("medication_status", Context.MODE_PRIVATE);
+        return prefs.getBoolean(medicationName + "_" + getCurrentDate(), false);
+    }
+
     private void saveMedicationStatus(String medicationName, boolean completed) {
         SharedPreferences prefs = getSharedPreferences("medication_status", Context.MODE_PRIVATE);
         prefs.edit().putBoolean(medicationName + "_" + getCurrentDate(), completed).apply();
@@ -257,70 +251,55 @@ public class PatientMedicationsActivity extends AppCompatActivity {
     private String getCurrentDate() {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
     }
-    
+
     private void logMedicationIntake(String medicationName, String dosage) {
-        // Find medication ID from the list
         Integer medicationId = null;
-        for (com.example.myrajourney.data.model
-.Medication med : getAllMedications()) {
-            if (med.getMedicationName() != null && med.getMedicationName().equals(medicationName)) {
+        // Match name to find ID from the loaded list
+        for (Medication med : getAllMedications()) {
+            if (med.getName() != null && med.getName().equals(medicationName)) {
                 try {
-                    // Convert String ID to Integer
-                    medicationId = Integer.parseInt(med.getId());
-                    break;
+                    if (med.getId() != null) {
+                        medicationId = Integer.parseInt(med.getId());
+                        break;
+                    }
                 } catch (NumberFormatException e) {
-                    // If ID cannot be parsed, continue searching
-                    continue;
+                    Log.e("MedicationLog", "Invalid ID format: " + med.getId());
                 }
             }
         }
-        
+
         if (medicationId == null) {
-            // If we can't find the ID, skip logging
+            Log.e("MedicationLog", "Medication ID not found for: " + medicationName);
             return;
         }
-        
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        com.example.myrajourney.data.model
-.MedicationLogRequest request = new com.example.myrajourney.data.model
-.MedicationLogRequest();
+
+        ApiService apiService = ApiClient.getApiService(this);
+        MedicationLogRequest request = new MedicationLogRequest();
         request.setPatientMedicationId(medicationId);
         request.setTakenAt(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         request.setDosage(dosage);
         request.setStatus("TAKEN");
-        
-        retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.MedicationLog>> call = apiService.logMedicationIntake(request);
-        
-        call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.MedicationLog>>() {
+
+        Call<ApiResponse<MedicationLog>> call = apiService.logMedicationIntake(request);
+
+        call.enqueue(new Callback<ApiResponse<MedicationLog>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.MedicationLog>> call, 
-                                 retrofit2.Response<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.MedicationLog>> response) {
-                // Medication logged successfully - doctor will be notified
+            public void onResponse(Call<ApiResponse<MedicationLog>> call, Response<ApiResponse<MedicationLog>> response) {
+                // Success logging
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model
-.ApiResponse<com.example.myrajourney.data.model
-.MedicationLog>> call, Throwable t) {
-                // Logging failed - but local status is saved
+            public void onFailure(Call<ApiResponse<MedicationLog>> call, Throwable t) {
+                // Log failure logic
             }
         });
     }
-    
-    private List<com.example.myrajourney.data.model
-.Medication> getAllMedications() {
+
+    private List<Medication> getAllMedications() {
         return allMedications != null ? allMedications : new ArrayList<>();
     }
 
-    // Inner class for medication schedule
+    // Inner class for simple UI model
     private static class MedicationSchedule {
         private String name;
         private String dosage;
@@ -339,11 +318,10 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         public String getTime() { return time; }
         public boolean isCompleted() { return completed; }
         public void setCompleted(boolean completed) { this.completed = completed; }
+        // Added hashCode for PendingIntent uniqueness
+        @Override
+        public int hashCode() {
+            return (name + time).hashCode();
+        }
     }
 }
-
-
-
-
-
-

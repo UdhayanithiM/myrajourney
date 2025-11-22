@@ -8,6 +8,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+// --- ADDED IMPORT ---
+import com.example.myrajourney.R;
+// --------------------
+
 import java.util.List;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder> {
@@ -29,9 +34,10 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     @Override
     public void onBindViewHolder(@NonNull NewsViewHolder holder, int position) {
         News news = newsList.get(position);
-        holder.image.setImageResource(news.imageRes);
-        holder.title.setText(news.title);
-        holder.desc.setText(news.description);
+        // FIX: Use getters instead of direct field access
+        holder.image.setImageResource(news.getImageRes());
+        holder.title.setText(news.getTitle());
+        holder.desc.setText(news.getDescription());
     }
 
     @Override
@@ -51,9 +57,3 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         }
     }
 }
-
-
-
-
-
-
