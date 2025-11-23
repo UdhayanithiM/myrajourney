@@ -12,24 +12,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.session.SessionManager; // ⭐ ADDED
 import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.Appointment;
-// Using the common AddAppointmentActivity
 import com.example.myrajourney.common.appointments.AddAppointmentActivity;
-// Using the adapter from patient package (assuming shared)
 import com.example.myrajourney.patient.appointments.AppointmentsAdapter;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-// ---------------------
 
 import java.util.ArrayList;
+import java.util.Collections;       // ⭐ ADDED (sorting)
+import java.util.Comparator;        // ⭐ ADDED
 import java.util.List;
 import java.util.Locale;
 import java.text.SimpleDateFormat;
@@ -43,9 +42,10 @@ public class DoctorScheduleActivity extends AppCompatActivity {
     List<Appointment> appointments, filteredList;
     AppointmentsAdapter adapter;
 
+    String doctorId; // ⭐ ADDED
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply Theme
         ThemeManager.applyTheme(this);
 
         super.onCreate(savedInstanceState);
@@ -55,38 +55,39 @@ public class DoctorScheduleActivity extends AppCompatActivity {
         searchBar = findViewById(R.id.search_bar);
         backButton = findViewById(R.id.back_button);
 
+        doctorId = new SessionManager(this).getUserId(); // ⭐ ADDED
+
         backButton.setOnClickListener(v -> finish());
 
         ImageView addButton = findViewById(R.id.add_button);
         if (addButton != null) {
-            addButton.setOnClickListener(v -> startActivity(new Intent(this, AddAppointmentActivity.class)));
+            addButton.setOnClickListener(v -> {
+                Intent i = new Intent(this, AddAppointmentActivity.class);
+                i.putExtra("context", "DOCTOR");
+                i.putExtra("doctor_id", doctorId); // ⭐ ADDED
+                startActivity(i);
+            });
         }
 
         appointments = new ArrayList<>();
         filteredList = new ArrayList<>();
 
-        // Setup Adapter
         adapter = new AppointmentsAdapter(this, filteredList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Load appointments from backend API
         loadAppointmentsFromBackend();
 
         searchBar.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void afterTextChanged(Editable s) { }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filter(s.toString());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
         });
 
-        // Quick access to add appointment: long-press back icon (secondary)
         backButton.setOnLongClickListener(v -> {
             startActivity(new Intent(this, AddAppointmentActivity.class));
             Toast.makeText(this, "Open Add Appointment", Toast.LENGTH_SHORT).show();
@@ -94,9 +95,19 @@ public class DoctorScheduleActivity extends AppCompatActivity {
         });
     }
 
+    // ⭐ ADDED — reload schedule when coming back from AddAppointment
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadAppointmentsFromBackend();
+    }
+
     private void loadAppointmentsFromBackend() {
+
         ApiService apiService = ApiClient.getApiService(this);
-        Call<ApiResponse<List<Appointment>>> call = apiService.getAppointments();
+
+        // ⭐ FIXED — get only THIS DOCTOR’S appointments
+        Call<ApiResponse<List<Appointment>>> call = apiService.getAppointments(null, Integer.valueOf(doctorId));
 
         call.enqueue(new Callback<ApiResponse<List<Appointment>>>() {
             @Override
@@ -107,32 +118,29 @@ public class DoctorScheduleActivity extends AppCompatActivity {
                     appointments.clear();
 
                     if (apiAppointments != null) {
-                        // Ensure the Appointment model has a constructor:
-                        // new Appointment(patientName, time, title, date)
-                        // OR use setters if that constructor doesn't exist.
-                        for (Appointment apiAppt : apiAppointments) {
-                            String patientName = apiAppt.getPatientName() != null ? apiAppt.getPatientName() : "Patient";
-                            String title = apiAppt.getTitle() != null ? apiAppt.getTitle() : "Appointment";
-                            String date = formatDate(apiAppt.getStartTime());
-                            String time = formatTime(apiAppt.getStartTime());
 
-                            // Creating a new local appointment object for UI display
-                            Appointment displayAppt = new Appointment();
-                            displayAppt.setPatientName(patientName);
-                            displayAppt.setTitle(title);
-                            displayAppt.setDate(date);
-                            // Assuming you have a field for time or use startTime
-                            displayAppt.setStartTime(apiAppt.getStartTime());
+                        // ⭐ FIXED — apply sorting by start_time
+                        Collections.sort(apiAppointments, new Comparator<Appointment>() {
+                            @Override
+                            public int compare(Appointment a1, Appointment a2) {
+                                try {
+                                    SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                                    Date d1 = f.parse(a1.getStartTime());
+                                    Date d2 = f.parse(a2.getStartTime());
+                                    return d1.compareTo(d2);
+                                } catch (Exception e) {
+                                    return 0;
+                                }
+                            }
+                        });
 
-                            appointments.add(displayAppt);
-                        }
+                        appointments.addAll(apiAppointments);
 
                         filteredList.clear();
                         filteredList.addAll(appointments);
                         adapter.notifyDataSetChanged();
                     }
                 } else {
-                    // No appointments or error
                     appointments.clear();
                     filteredList.clear();
                     adapter.notifyDataSetChanged();
@@ -141,7 +149,6 @@ public class DoctorScheduleActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiResponse<List<Appointment>>> call, Throwable t) {
-                // On failure, show empty list
                 appointments.clear();
                 filteredList.clear();
                 adapter.notifyDataSetChanged();
@@ -177,10 +184,9 @@ public class DoctorScheduleActivity extends AppCompatActivity {
     private void filter(String query) {
         filteredList.clear();
         for (Appointment a : appointments) {
-            // Safe check for nulls before filtering
             String pName = a.getPatientName() != null ? a.getPatientName() : "";
-            String aType = a.getTitle() != null ? a.getTitle() : ""; // Using Title as Type based on your logic
-            String aDate = a.getDate() != null ? a.getDate() : "";
+            String aType = a.getTitle() != null ? a.getTitle() : "";
+            String aDate = a.getFormattedDate() != null ? a.getFormattedDate() : "";
 
             if (pName.toLowerCase().contains(query.toLowerCase()) ||
                     aType.toLowerCase().contains(query.toLowerCase()) ||

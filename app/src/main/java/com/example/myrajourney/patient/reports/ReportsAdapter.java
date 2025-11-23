@@ -5,86 +5,101 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.List;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.data.model.Report;
-// ---------------------
 
-public class ReportsAdapter extends RecyclerView.Adapter<ReportsAdapter.ViewHolder> {
+import java.util.List;
 
-    private Context context;
+public class ReportsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int VIEW_PATIENT = 1;
+    private static final int VIEW_DOCTOR = 2;
+
+    private final Context context;
     private List<Report> reports;
 
-    // Add click listener interface
     public interface OnReportClickListener {
         void onReportClick(Report report);
     }
 
-    private OnReportClickListener onReportClickListener;
+    private OnReportClickListener clickListener;
+
+    public void setOnReportClickListener(OnReportClickListener listener) {
+        this.clickListener = listener;
+    }
 
     public ReportsAdapter(Context context, List<Report> reports) {
         this.context = context;
         this.reports = reports;
     }
 
-    // Add method to set click listener
-    public void setOnReportClickListener(OnReportClickListener listener) {
-        this.onReportClickListener = listener;
+    @Override
+    public int getItemViewType(int position) {
+        Report r = reports.get(position);
+
+        // If report has a file URL → patient uploaded report
+        if (r.getFileUrl() != null && !r.getFileUrl().isEmpty()) {
+            return VIEW_PATIENT;
+        }
+        return VIEW_DOCTOR;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_report, parent, false);
-        return new ViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
+        if (viewType == VIEW_PATIENT) {
+            View view = LayoutInflater.from(context)
+                    .inflate(R.layout.item_report_patient, parent, false);
+            return new PatientViewHolder(view);
+        } else {
+            View view = LayoutInflater.from(context)
+                    .inflate(R.layout.item_report_doctor, parent, false);
+            return new DoctorViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Report report = reports.get(position);
 
-        // Logic: If file URL exists, treat as Patient Report. Otherwise, Doctor Report logic.
-        boolean isPatientReport = (report.getFileUrl() != null && !report.getFileUrl().isEmpty());
+        if (holder instanceof PatientViewHolder) {
+            PatientViewHolder h = (PatientViewHolder) holder;
+            h.reportName.setText(report.getTitle());
+            h.reportDate.setText(report.getCreatedAt());
+            h.reportFile.setText(report.getFileUrl());
 
-        if (isPatientReport) {
-            // Patient View Binding
-            if (holder.reportName != null) holder.reportName.setText(report.getTitle());
-            if (holder.reportDate != null) holder.reportDate.setText(report.getCreatedAt());
-            if (holder.reportFile != null) holder.reportFile.setText(report.getFileUrl());
-            if (holder.patientName != null) holder.patientName.setText("Patient Report");
-        } else {
-            // Doctor View Binding
-            if (holder.patientName != null)
-                holder.patientName.setText(report.getPatientName() != null ? report.getPatientName() : "Unknown Patient");
+            h.itemView.setOnClickListener(v -> {
+                if (clickListener != null) clickListener.onReportClick(report);
+            });
 
-            if (holder.reportType != null) holder.reportType.setText(report.getTitle());
-            if (holder.date != null) holder.date.setText(report.getCreatedAt());
+        } else if (holder instanceof DoctorViewHolder) {
+            DoctorViewHolder h = (DoctorViewHolder) holder;
 
-            if (holder.status != null) {
-                String status = report.getStatus() != null ? report.getStatus() : "Pending";
-                holder.status.setText(status);
+            h.patientName.setText(report.getPatientName());
+            h.reportType.setText(report.getTitle());
+            h.date.setText(report.getCreatedAt());
 
-                // Set status color
-                if ("Normal".equalsIgnoreCase(status) || "Reviewed".equalsIgnoreCase(status)) {
-                    holder.status.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
-                } else if ("Abnormal".equalsIgnoreCase(status) || "Action Required".equalsIgnoreCase(status)) {
-                    holder.status.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
-                } else {
-                    holder.status.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
-                }
+            String status = report.getStatus() != null ? report.getStatus() : "Pending";
+            h.status.setText(status);
+
+            // Color based on status
+            if (status.equalsIgnoreCase("Normal") || status.equalsIgnoreCase("Reviewed")) {
+                h.status.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
+            } else if (status.equalsIgnoreCase("Abnormal") || status.equalsIgnoreCase("Action Required")) {
+                h.status.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
+            } else {
+                h.status.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
             }
+
+            h.itemView.setOnClickListener(v -> {
+                if (clickListener != null) clickListener.onReportClick(report);
+            });
         }
-
-        // Make report clickable
-        holder.itemView.setOnClickListener(v -> {
-            if (onReportClickListener != null) {
-                onReportClickListener.onReportClick(report);
-            }
-        });
     }
 
     @Override
@@ -92,22 +107,33 @@ public class ReportsAdapter extends RecyclerView.Adapter<ReportsAdapter.ViewHold
         return reports.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        // Fields for both possible layouts (Patient vs Doctor item)
-        TextView reportName, reportDate, reportFile; // Patient Layout fields
-        TextView patientName, reportType, date, status; // Doctor Layout fields
+    // ---------------------------
+    // Patient ViewHolder
+    // ---------------------------
+    static class PatientViewHolder extends RecyclerView.ViewHolder {
 
-        public ViewHolder(@NonNull View itemView) {
+        TextView reportName, reportDate, reportFile;
+
+        public PatientViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Use findViewById for all potential IDs. If the ID isn't in the layout, it returns null.
-            // Safe null-checks are handled in onBindViewHolder.
             reportName = itemView.findViewById(R.id.report_name);
             reportDate = itemView.findViewById(R.id.report_date);
             reportFile = itemView.findViewById(R.id.report_file);
+        }
+    }
 
+    // ---------------------------
+    // Doctor ViewHolder
+    // ---------------------------
+    static class DoctorViewHolder extends RecyclerView.ViewHolder {
+
+        TextView patientName, reportType, date, status;
+
+        public DoctorViewHolder(@NonNull View itemView) {
+            super(itemView);
             patientName = itemView.findViewById(R.id.patient_name);
             reportType = itemView.findViewById(R.id.report_type);
-            date = itemView.findViewById(R.id.date); // Some layouts use 'date', others 'report_date'
+            date = itemView.findViewById(R.id.date);
             status = itemView.findViewById(R.id.status);
         }
     }

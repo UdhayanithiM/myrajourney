@@ -11,11 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.Rehab;
-// ---------------------
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,15 +22,17 @@ public class AddRehabActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private AddRehabAdapter adapter;
-    private List<Rehab> rehabList;
+
+    private List<Rehab> rehabList;       // FULL LIST
+    private List<Rehab> filteredList;    // FILTERED LIST
+
     private EditText searchBar;
     private Button doneButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme
-        ThemeManager.applyTheme(this);
 
+        ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_rehab);
 
@@ -41,23 +41,32 @@ public class AddRehabActivity extends AppCompatActivity {
         doneButton = findViewById(R.id.done_button);
 
         rehabList = new ArrayList<>();
+        filteredList = new ArrayList<>();
+
+        // --- DEFAULT EXERCISES ---
         rehabList.add(new Rehab("Fist Squeeze", "Squeeze soft ball", "10 reps", "Daily",
                 "https://www.youtube.com/watch?v=5qny4scQqHc",
                 "https://img.youtube.com/vi/5qny4scQqHc/0.jpg"));
+
         rehabList.add(new Rehab("Finger Spread", "Spread fingers apart", "5 reps", "Daily",
                 "https://www.youtube.com/watch?v=DRr4qzxCSqY",
                 "https://img.youtube.com/vi/DRr4qzxCSqY/0.jpg"));
+
         rehabList.add(new Rehab("Wrist Flex", "Flex wrist upward", "10 reps", "Daily",
                 "https://www.youtube.com/watch?v=NXbtJ6qCdbs",
                 "https://img.youtube.com/vi/NXbtJ6qCdbs/0.jpg"));
 
-        adapter = new AddRehabAdapter(this, rehabList);
+        // Initially filteredList == full list
+        filteredList.addAll(rehabList);
+
+        adapter = new AddRehabAdapter(this, rehabList, filteredList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filter(s.toString());
@@ -78,12 +87,18 @@ public class AddRehabActivity extends AppCompatActivity {
     }
 
     private void filter(String text) {
-        List<Rehab> temp = new ArrayList<>();
-        for (Rehab rehab : rehabList) {
-            if (rehab.getName().toLowerCase().contains(text.toLowerCase())) {
-                temp.add(rehab);
+        filteredList.clear();
+
+        if (text.trim().isEmpty()) {
+            filteredList.addAll(rehabList);
+        } else {
+            for (Rehab rehab : rehabList) {
+                if (rehab.getName().toLowerCase().contains(text.toLowerCase())) {
+                    filteredList.add(rehab);
+                }
             }
         }
-        adapter.filterList(temp);
+
+        adapter.notifyDataSetChanged();
     }
 }

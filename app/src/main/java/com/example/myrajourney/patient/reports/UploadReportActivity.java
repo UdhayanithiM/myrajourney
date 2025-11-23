@@ -2,8 +2,14 @@ package com.example.myrajourney.patient.reports;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,25 +19,33 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
-
-// ✅ FIX: Import R
 import com.example.myrajourney.R;
-// ✅ FIX: Import TokenManager
-import com.example.myrajourney.core.session.TokenManager;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-
-// Retrofit imports for cleaner code
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
 import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.Report;
+import com.example.myrajourney.core.session.TokenManager;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+/**
+ * UploadReportActivity
+ * - safer imports
+ * - robust file reading from URI (either via ParcelFileDescriptor.statSize or stream fallback)
+ * - get filename via ContentResolver/OpenableColumns
+ */
 public class UploadReportActivity extends AppCompatActivity {
 
     private TextInputEditText reportName;
@@ -46,8 +60,15 @@ public class UploadReportActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.OpenDocument(),
                     uri -> {
                         if (uri != null) {
+                            // Persist permission so the URI stays accessible across restarts (optional)
+                            final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                            try {
+                                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                            } catch (Exception ignored) {}
+
                             selectedFileUri = uri;
-                            uploadText.setText("File selected: " + uri.getLastPathSegment());
+                            String name = getFileNameFromUri(this, uri);
+                            uploadText.setText("File selected: " + (name != null ? name : uri.getLastPathSegment()));
                         }
                     });
 
@@ -74,18 +95,15 @@ public class UploadReportActivity extends AppCompatActivity {
     private void showDateTimePicker() {
         Calendar now = Calendar.getInstance();
 
-        // Date picker
         DatePickerDialog datePicker = new DatePickerDialog(this,
                 (view, year, month, dayOfMonth) -> {
                     selectedDateTime.set(year, month, dayOfMonth);
 
-                    // Time picker
                     TimePickerDialog timePicker = new TimePickerDialog(this,
                             (timeView, hourOfDay, minute) -> {
                                 selectedDateTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
                                 selectedDateTime.set(Calendar.MINUTE, minute);
 
-                                // Update TextView
                                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
                                 reportDate.setText(sdf.format(selectedDateTime.getTime()));
                             },
@@ -102,6 +120,7 @@ public class UploadReportActivity extends AppCompatActivity {
     }
 
     private void openFilePicker() {
+        // Allow PDF or images
         filePickerLauncher.launch(new String[]{"application/pdf", "image/*"});
     }
 
@@ -124,12 +143,10 @@ public class UploadReportActivity extends AppCompatActivity {
             return;
         }
 
-        // Upload to backend
         uploadReportToBackend(name, date);
     }
 
     private void uploadReportToBackend(String title, String date) {
-        // Get patient ID using TokenManager
         TokenManager tokenManager = TokenManager.getInstance(this);
         String patientId = tokenManager.getUserId();
 
@@ -139,34 +156,70 @@ public class UploadReportActivity extends AppCompatActivity {
         }
 
         try {
-            // Read file from URI
-            android.content.ContentResolver resolver = getContentResolver();
-            android.os.ParcelFileDescriptor pfd = resolver.openFileDescriptor(selectedFileUri, "r");
-            if (pfd == null) {
-                Toast.makeText(this, "Could not read file", Toast.LENGTH_SHORT).show();
+            ContentResolver resolver = getContentResolver();
+            String mimeType = resolver.getType(selectedFileUri);
+            if (mimeType == null) mimeType = "application/octet-stream";
+
+            // Attempt to read size via ParcelFileDescriptor; fall back to streaming read
+            byte[] fileBytes = null;
+            long sizeBytes = -1L;
+            try (ParcelFileDescriptor pfd = resolver.openFileDescriptor(selectedFileUri, "r")) {
+                if (pfd != null) {
+                    try {
+                        long statSize = pfd.getStatSize();
+                        if (statSize > 0) {
+                            sizeBytes = statSize;
+                            FileInputStream fis = new FileInputStream(pfd.getFileDescriptor());
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            byte[] buffer = new byte[8192];
+                            int read;
+                            while ((read = fis.read(buffer)) != -1) {
+                                baos.write(buffer, 0, read);
+                            }
+                            fileBytes = baos.toByteArray();
+                            fis.close();
+                        }
+                    } catch (Exception ignored) {
+                        // fall through to stream read below
+                    }
+                }
+            } catch (Exception ignored) {
+                // ignore here and try stream read
+            }
+
+            if (fileBytes == null) {
+                // stream fallback
+                try (InputStream in = resolver.openInputStream(selectedFileUri);
+                     ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while (in != null && (read = in.read(buffer)) != -1) {
+                        baos.write(buffer, 0, read);
+                    }
+                    fileBytes = baos.toByteArray();
+                    sizeBytes = fileBytes.length;
+                }
+            }
+
+            if (fileBytes == null) {
+                Toast.makeText(this, "Could not read selected file", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            java.io.FileInputStream fis = new java.io.FileInputStream(pfd.getFileDescriptor());
-            byte[] fileBytes = new byte[(int)pfd.getStatSize()];
-            fis.read(fileBytes);
-            fis.close();
-            pfd.close();
+            String fileName = getFileNameFromUri(this, selectedFileUri);
+            if (fileName == null || fileName.isEmpty()) {
+                fileName = "report_" + System.currentTimeMillis();
+                // ensure extension from mime
+                if ("application/pdf".equals(mimeType)) fileName += ".pdf";
+            }
 
-            // Get file name and MIME type
-            String fileName = "report_" + System.currentTimeMillis() + ".pdf";
-            String mimeType = resolver.getType(selectedFileUri);
-            if (mimeType == null) mimeType = "application/pdf";
+            RequestBody patientIdBody = RequestBody.create(MediaType.parse("text/plain"), patientId);
+            RequestBody titleBody = RequestBody.create(MediaType.parse("text/plain"), title);
+            RequestBody descriptionBody = RequestBody.create(MediaType.parse("text/plain"), "Uploaded on " + date);
 
-            // Create multipart request body
-            okhttp3.RequestBody patientIdBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("text/plain"), patientId);
-            okhttp3.RequestBody titleBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("text/plain"), title);
-            okhttp3.RequestBody descriptionBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse("text/plain"), "Uploaded on " + date);
+            RequestBody fileBody = RequestBody.create(MediaType.parse(mimeType), fileBytes);
+            MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", fileName, fileBody);
 
-            okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(okhttp3.MediaType.parse(mimeType), fileBytes);
-            okhttp3.MultipartBody.Part filePart = okhttp3.MultipartBody.Part.createFormData("file", fileName, fileBody);
-
-            // Upload to backend
             ApiService apiService = ApiClient.getApiService(this);
             Call<ApiResponse<Report>> call = apiService.createReport(patientIdBody, titleBody, descriptionBody, filePart);
 
@@ -181,6 +234,7 @@ public class UploadReportActivity extends AppCompatActivity {
 
                     if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                         Toast.makeText(UploadReportActivity.this, "Report uploaded successfully! Doctor will be notified.", Toast.LENGTH_LONG).show();
+                        setResult(RESULT_OK); // notify callers
                         finish();
                     } else {
                         String errorMsg = "Failed to upload report";
@@ -201,5 +255,31 @@ public class UploadReportActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Error reading file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Helper: extract filename from Uri via OpenableColumns if possible
+     */
+    private static String getFileNameFromUri(Context ctx, Uri uri) {
+        if (uri == null) return null;
+        ContentResolver cr = ctx.getContentResolver();
+        String result = null;
+        Cursor cursor = null;
+        try {
+            cursor = cr.query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (idx != -1) result = cursor.getString(idx);
+            }
+        } catch (Exception ignored) {
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+
+        if (result == null) {
+            String path = uri.getLastPathSegment();
+            if (path != null) result = path;
+        }
+        return result;
     }
 }

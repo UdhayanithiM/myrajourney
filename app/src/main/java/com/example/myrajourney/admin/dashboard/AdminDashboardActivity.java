@@ -3,15 +3,14 @@ package com.example.myrajourney.admin.dashboard;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -29,14 +28,15 @@ import com.google.android.material.navigation.NavigationView;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    // Views
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
-    private ImageView iconMenu;
+
+    private ImageView iconMenu, logoutBtn;
+
     private LinearLayout navUpdatePatient, navUpdateDoctor, navSettings;
     private Button btnCreatePatient, btnCreateDoctor, btnAssignPatients, btnViewAllPatients, btnViewAllDoctors;
+
     private SearchView searchBar;
-    private ImageView logoutBtn;
 
     private SessionManager sessionManager;
 
@@ -48,121 +48,132 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
-        // Check login
+        // Validate login
         if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        // Initialize Drawer
+        initViews();
+        setupDrawer();
+        setupButtons();
+        setupBackPressHandler();
+    }
+
+    private void initViews() {
         drawerLayout = findViewById(R.id.drawerLayout);
         navigationView = findViewById(R.id.navigationView);
-        iconMenu = findViewById(R.id.iconMenu);
 
-        // Initialize Other Views
+        iconMenu = findViewById(R.id.iconMenu);
+        logoutBtn = findViewById(R.id.logoutBtn);
+
         btnCreatePatient = findViewById(R.id.btnCreatePatient);
         btnCreateDoctor = findViewById(R.id.btnCreateDoctor);
         btnAssignPatients = findViewById(R.id.btnAssignPatients);
         btnViewAllPatients = findViewById(R.id.btnViewAllPatients);
         btnViewAllDoctors = findViewById(R.id.btnViewAllDoctors);
+
         navUpdatePatient = findViewById(R.id.navUpdatePatient);
         navUpdateDoctor = findViewById(R.id.navUpdateDoctor);
         navSettings = findViewById(R.id.navSettings);
-        searchBar = findViewById(R.id.searchBar);
-        logoutBtn = findViewById(R.id.logoutBtn);
 
-        // --- DRAWER LOGIC ---
-        // Open drawer when menu icon is clicked
-        iconMenu.setOnClickListener(v -> {
-            if (drawerLayout != null) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
-
-        // Handle Navigation Drawer Item Clicks
-        navigationView.setNavigationItemSelectedListener(item -> {
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        });
-
-        // Set up Logout
-        logoutBtn.setOnClickListener(v -> showLogoutDialog());
-
-        // Set up Buttons
-        setupButtons();
-
-        // --- BACK PRESS DISPATCHER LOGIC ---
-        // This replaces the deprecated onBackPressed()
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                // If drawer is open, close it
-                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                } else {
-                    // CRITICAL FIX: Prevent going back to Login Activity
-                    // finishAffinity() closes the entire app stack, exiting the app.
-                    // This ensures the user doesn't accidentally land back on the login screen.
-                    finishAffinity();
-                }
-            }
-        });
+        searchBar = findViewById(R.id.searchBar); // FIXED — correct SearchView class
     }
 
-    private void setupButtons() {
-        // Create Patient
-        btnCreatePatient.setOnClickListener(v ->
-                startActivity(new Intent(AdminDashboardActivity.this, CreatePatientActivity.class))
-        );
+    private void setupDrawer() {
 
-        // Create Doctor
-        btnCreateDoctor.setOnClickListener(v ->
-                startActivity(new Intent(AdminDashboardActivity.this, CreateDoctorActivity.class))
-        );
-
-        // Assign Patients
-        if (btnAssignPatients != null) {
-            btnAssignPatients.setOnClickListener(v ->
-                    startActivity(new Intent(AdminDashboardActivity.this, AssignPatientToDoctorActivity.class))
-            );
-        }
-
-        // View Patients
-        if (btnViewAllPatients != null) {
-            btnViewAllPatients.setOnClickListener(v ->
-                    startActivity(new Intent(AdminDashboardActivity.this, AllPatientsActivity.class))
-            );
-        }
-
-        // View Doctors
-        if (btnViewAllDoctors != null) {
-            btnViewAllDoctors.setOnClickListener(v -> {
-                Toast.makeText(AdminDashboardActivity.this, "View All Doctors - Coming Soon", Toast.LENGTH_SHORT).show();
+        // Open drawer
+        if (iconMenu != null) {
+            iconMenu.setOnClickListener(v -> {
+                if (drawerLayout != null) {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
             });
         }
 
-        // Footer Nav
-        navUpdatePatient.setOnClickListener(v ->
-                startActivity(new Intent(AdminDashboardActivity.this, EditPatientActivity.class))
-        );
+        // Handle drawer menu
+        if (navigationView != null) {
+            navigationView.setNavigationItemSelectedListener(item -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            });
+        }
 
-        navUpdateDoctor.setOnClickListener(v ->
-                startActivity(new Intent(AdminDashboardActivity.this, EditDoctorActivity.class))
-        );
+        // Logout
+        if (logoutBtn != null) {
+            logoutBtn.setOnClickListener(v -> showLogoutDialog());
+        }
+    }
 
-        navSettings.setOnClickListener(v ->
-                startActivity(new Intent(AdminDashboardActivity.this, SettingsActivity.class))
+    private void setupButtons() {
+
+        if (btnCreatePatient != null)
+            btnCreatePatient.setOnClickListener(v ->
+                    startActivity(new Intent(this, CreatePatientActivity.class))
+            );
+
+        if (btnCreateDoctor != null)
+            btnCreateDoctor.setOnClickListener(v ->
+                    startActivity(new Intent(this, CreateDoctorActivity.class))
+            );
+
+        if (btnAssignPatients != null)
+            btnAssignPatients.setOnClickListener(v ->
+                    startActivity(new Intent(this, AssignPatientToDoctorActivity.class))
+            );
+
+        if (btnViewAllPatients != null)
+            btnViewAllPatients.setOnClickListener(v ->
+                    startActivity(new Intent(this, AllPatientsActivity.class))
+            );
+
+        if (btnViewAllDoctors != null)
+            btnViewAllDoctors.setOnClickListener(v ->
+                    Toast.makeText(this, "View All Doctors - Coming Soon", Toast.LENGTH_SHORT).show()
+            );
+
+        if (navUpdatePatient != null)
+            navUpdatePatient.setOnClickListener(v ->
+                    startActivity(new Intent(this, EditPatientActivity.class))
+            );
+
+        if (navUpdateDoctor != null)
+            navUpdateDoctor.setOnClickListener(v ->
+                    startActivity(new Intent(this, EditDoctorActivity.class))
+            );
+
+        if (navSettings != null)
+            navSettings.setOnClickListener(v ->
+                    startActivity(new Intent(this, SettingsActivity.class))
+            );
+    }
+
+    private void setupBackPressHandler() {
+        getOnBackPressedDispatcher().addCallback(this,
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+
+                        // Close drawer first
+                        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                            drawerLayout.closeDrawer(GravityCompat.START);
+                            return;
+                        }
+
+                        // Clean exit without returning to login
+                        finishAffinity();
+                    }
+                }
         );
     }
 
     private void showLogoutDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Logout")
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     sessionManager.logout();
-                    // Clear task ensures we can't go back to AdminDashboard after logout
                     Intent intent = new Intent(this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);

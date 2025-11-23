@@ -22,39 +22,28 @@ public class Report {
     @SerializedName("file_url")
     private String fileUrl;
 
-    @SerializedName("created_at")
-    private String createdAt;
-
-    @SerializedName("uploaded_at")
-    private String uploadedAt;
-
-    @SerializedName("doctor_comment")
-    private String doctorComment;
-
     @SerializedName("status")
     private String status;
 
-    // Default Constructor
-    public Report() {
-    }
+    @SerializedName("created_at")
+    private String createdAt;
 
-    // Constructor used in ReportList and UploadReportActivity
-    public Report(String title, String createdAt, String fileUrl) {
+    @SerializedName("updated_at")
+    private String updatedAt;
+
+    // Default constructor
+    public Report() {}
+
+    // Basic constructor for patient uploads
+    public Report(String title, String fileUrl, String createdAt) {
         this.title = title;
-        this.createdAt = createdAt;
         this.fileUrl = fileUrl;
+        this.createdAt = createdAt;
         this.status = "Pending";
     }
 
-    // Constructor with full details
-    public Report(String title, String description, String fileUrl, String status) {
-        this.title = title;
-        this.description = description;
-        this.fileUrl = fileUrl;
-        this.status = status;
-    }
+    // ------------------- Getters & Setters -------------------
 
-    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -73,22 +62,17 @@ public class Report {
     public String getFileUrl() { return fileUrl; }
     public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
 
-    public String getCreatedAt() { return createdAt != null ? createdAt : uploadedAt; }
-    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
-
-    // ✅ Added missing getter and setter for uploadedAt
-    public String getUploadedAt() { return uploadedAt; }
-    public void setUploadedAt(String uploadedAt) { this.uploadedAt = uploadedAt; }
-
-    public String getDoctorComment() { return doctorComment; }
-    public void setDoctorComment(String doctorComment) { this.doctorComment = doctorComment; }
-
-    public String getStatus() { return status; }
+    public String getStatus() { return status == null ? "Pending" : status; }
     public void setStatus(String status) { this.status = status; }
 
-    // --- Helper Methods for Adapters ---
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+
+    // Convenience Methods
+    public String getDate() { return createdAt; }
     public String getName() { return title; }
-    public String getDate() { return getCreatedAt(); }
-    public String getFileUri() { return fileUrl; }
     public String getReportType() { return title; }
 }

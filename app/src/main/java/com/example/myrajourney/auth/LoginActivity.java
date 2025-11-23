@@ -48,9 +48,8 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn = findViewById(R.id.btnLogin);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
 
-        // Setup Listeners
+        // Listeners
         loginBtn.setOnClickListener(v -> login());
-
         tvForgotPassword.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
         });
@@ -76,7 +75,9 @@ public class LoginActivity extends AppCompatActivity {
 
         api.login(req).enqueue(new Callback<ApiResponse<AuthResponse>>() {
             @Override
-            public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> res) {
+            public void onResponse(Call<ApiResponse<AuthResponse>> call,
+                                   Response<ApiResponse<AuthResponse>> res) {
+
                 dialog.dismiss();
 
                 if (!res.isSuccessful() || res.body() == null || !res.body().isSuccess()) {
@@ -87,31 +88,38 @@ public class LoginActivity extends AppCompatActivity {
                 AuthResponse auth = res.body().getData();
                 User u = auth.getUser();
 
-                if (u != null) {
-                    // Save secure token
-                    TokenManager.getInstance(LoginActivity.this).saveToken(auth.getToken());
-                    // Save basic user info
-                    TokenManager.getInstance(LoginActivity.this).saveUserInfo(
-                            String.valueOf(u.getId()),
-                            u.getEmail(),
-                            u.getRole()
-                    );
-
-                    String name = (u.getName() == null) ? u.getEmail() : u.getName();
-                    session.createSession(name, u.getEmail(), u.getRole());
-
-                    // Navigate based on role
-                    NavigationManager.goToDashboardForRole(LoginActivity.this, u.getRole());
-                    finish();
-                } else {
-                    Toast.makeText(LoginActivity.this, "Login failed: User data missing", Toast.LENGTH_SHORT).show();
+                if (u == null) {
+                    Toast.makeText(LoginActivity.this, "Login failed: User missing", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                // Save token securely
+                TokenManager.getInstance(LoginActivity.this).saveToken(auth.getToken());
+
+                // Save user info in TokenManager (used by other features)
+                TokenManager.getInstance(LoginActivity.this)
+                        .saveUserInfo(String.valueOf(u.getId()), u.getEmail(), u.getRole());
+
+                // FIX: Save complete session including user_id
+                String name = (u.getName() == null) ? u.getEmail() : u.getName();
+
+                session.createSession(
+                        name,
+                        u.getEmail(),
+                        u.getRole(),
+                        String.valueOf(u.getId())    // ✅ CRITICAL FIX
+                );
+
+                // Navigate based on role
+                NavigationManager.goToDashboardForRole(LoginActivity.this, u.getRole());
+                finish();
             }
 
             @Override
             public void onFailure(Call<ApiResponse<AuthResponse>> call, Throwable t) {
                 dialog.dismiss();
-                Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -17,7 +17,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
     private Context context;
     private List<Appointment> appointments;
-    private Appointment nextAppointment; // optional highlight
+    private Appointment nextAppointment;
 
     public AppointmentAdapter(Context context, List<Appointment> appointments) {
         this.context = context;
@@ -33,35 +33,44 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
     @NonNull
     @Override
     public AppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_appointment, parent, false);
+        View view = LayoutInflater.from(context)
+                .inflate(R.layout.item_appointment, parent, false);
         return new AppViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AppViewHolder holder, int position) {
         Appointment app = appointments.get(position);
-        
-        // Use new layout IDs
+
+        // Show doctor or patient name
         if (app.getDoctorName() != null) {
-            holder.patientName.setText(app.getDoctorName());
+            holder.person.setText(app.getDoctorName());
         } else if (app.getPatientName() != null) {
-            holder.patientName.setText(app.getPatientName());
-        }
-        
-        holder.date.setText(app.getDate());
-        holder.time.setText(app.getTimeSlot());
-        
-        if (app.getAppointmentType() != null) {
-            holder.type.setText(app.getAppointmentType());
-        } else if (app.getReason() != null) {
-            holder.type.setText(app.getReason());
+            holder.person.setText(app.getPatientName());
+        } else {
+            holder.person.setText("Appointment");
         }
 
-        // Highlight next appointment
-        if (app == nextAppointment) {
-            holder.itemView.setBackgroundColor(0xFFE0F7FA); // light cyan
+        holder.date.setText(app.getFormattedDate());
+        holder.time.setText(app.getFormattedTimeSlot());
+
+        if (app.getAppointmentType() != null)
+            holder.type.setText(app.getAppointmentType());
+        else if (app.getReason() != null)
+            holder.type.setText(app.getReason());
+        else if (app.getTitle() != null)
+            holder.type.setText(app.getTitle());
+        else
+            holder.type.setText("");
+
+        // highlight next appointment
+        if (nextAppointment != null &&
+                app.getId() != null &&
+                app.getId().equals(nextAppointment.getId())) {
+
+            holder.itemView.setBackgroundColor(0xFFE0F7FA);
         } else {
-            holder.itemView.setBackgroundColor(0x00000000); // transparent
+            holder.itemView.setBackgroundColor(0x00000000);
         }
     }
 
@@ -71,20 +80,17 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
     }
 
     static class AppViewHolder extends RecyclerView.ViewHolder {
-        TextView patientName, date, time, type;
+
+        TextView person, date, time, type;
 
         public AppViewHolder(@NonNull View itemView) {
             super(itemView);
-            patientName = itemView.findViewById(R.id.patient_name);
-            date = itemView.findViewById(R.id.appointment_date);
-            time = itemView.findViewById(R.id.appointment_time);
-            type = itemView.findViewById(R.id.appointment_type);
+
+            // FIXED: Correct IDs from XML
+            person = itemView.findViewById(R.id.appointment_person);
+            type   = itemView.findViewById(R.id.appointment_type);
+            date   = itemView.findViewById(R.id.appointment_date);
+            time   = itemView.findViewById(R.id.appointment_time);
         }
     }
 }
-
-
-
-
-
-

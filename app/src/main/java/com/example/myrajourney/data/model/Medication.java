@@ -14,35 +14,41 @@ public class Medication {
     private String dosage;
 
     @SerializedName("frequency")
-    private String frequency;
+    private String frequency; // e.g. "Morning", "Twice a day", "8:00 AM"
 
     @SerializedName("duration")
     private String duration;
 
     @SerializedName("type")
-    private String type; // e.g., Tablet, Capsule
+    private String type;
 
     @SerializedName("category")
-    private String category; // e.g., Painkiller, Antibiotic
+    private String category;
 
     @SerializedName("status")
-    private String status; // e.g., Ongoing, Completed, Available
+    private String status;
 
     @SerializedName("timing")
-    private String timing;
+    private String timing; // Real backend timing field
 
     @SerializedName("instructions")
     private String instructions;
 
-    // Helper field for UI (Checkbox state)
-    private boolean isTakenToday;
+    // Helper (not from backend)
+    private boolean isTakenToday = false;
 
-    // Default Constructor
-    public Medication() {
-    }
+    // Empty Constructor
+    public Medication() {}
 
-    // Constructor used in AllMedicationsActivity and PatientDetailsActivity
-    public Medication(String name, String dosage, String frequency, String duration, String type, String category, String status) {
+    // Full Constructor (for doctor local selection list)
+    public Medication(String name,
+                      String dosage,
+                      String frequency,
+                      String duration,
+                      String type,
+                      String category,
+                      String status) {
+
         this.name = name;
         this.dosage = dosage;
         this.frequency = frequency;
@@ -50,48 +56,123 @@ public class Medication {
         this.type = type;
         this.category = category;
         this.status = status;
-        this.isTakenToday = false;
     }
 
-    // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // ---------------- Getters & Setters ----------------
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getId() {
+        return id;
+    }
 
-    // ✅ FIXED: Added alias for ChatBot compatibility
-    public String getMedicationName() { return name; }
+    public void setId(String id) {
+        this.id = safe(id);
+    }
 
-    public String getDosage() { return dosage; }
-    public void setDosage(String dosage) { this.dosage = dosage; }
+    public String getName() {
+        return safe(name);
+    }
 
-    public String getFrequency() { return frequency; }
-    public void setFrequency(String frequency) { this.frequency = frequency; }
+    public void setName(String name) {
+        this.name = safe(name);
+    }
 
-    public String getDuration() { return duration; }
-    public void setDuration(String duration) { this.duration = duration; }
+    public String getDosage() {
+        return safe(dosage);
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setDosage(String dosage) {
+        this.dosage = safe(dosage);
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getFrequency() {
+        return safe(frequency);
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setFrequency(String frequency) {
+        this.frequency = safe(frequency);
+    }
 
-    // ✅ FIXED: Added boolean check for ChatBot compatibility
+    public String getDuration() {
+        return safe(duration);
+    }
+
+    public void setDuration(String duration) {
+        this.duration = safe(duration);
+    }
+
+    public String getType() {
+        return safe(type);
+    }
+
+    public void setType(String type) {
+        this.type = safe(type);
+    }
+
+    public String getCategory() {
+        return safe(category);
+    }
+
+    public void setCategory(String category) {
+        this.category = safe(category);
+    }
+
+    public String getStatus() {
+        if (status == null) return "Active";
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = safe(status);
+    }
+
     public boolean isActive() {
-        return status != null && (status.equalsIgnoreCase("Ongoing") || status.equalsIgnoreCase("Active"));
+        return "Active".equalsIgnoreCase(status) ||
+                "Ongoing".equalsIgnoreCase(status) ||
+                status == null;
     }
 
-    public String getTiming() { return timing; }
-    public void setTiming(String timing) { this.timing = timing; }
+    public boolean isTakenToday() {
+        return isTakenToday;
+    }
 
-    public String getInstructions() { return instructions; }
-    public void setInstructions(String instructions) { this.instructions = instructions; }
+    public void setTakenToday(boolean takenToday) {
+        this.isTakenToday = takenToday;
+    }
 
-    public boolean isTakenToday() { return isTakenToday; }
-    public void setTakenToday(boolean takenToday) { isTakenToday = takenToday; }
+    public String getTiming() {
+        return safe(timing);
+    }
+
+    public void setTiming(String timing) {
+        this.timing = safe(timing);
+    }
+
+    public String getInstructions() {
+        return safe(instructions);
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = safe(instructions);
+    }
+
+    // ---------------- Helper ----------------
+
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    /**
+     * Smart formatting: converts loose text to a time
+     */
+    public String getFormattedTime() {
+        String text = getFrequency().toLowerCase();
+
+        if (text.contains("morning")) return "8:00 AM";
+        if (text.contains("afternoon")) return "2:00 PM";
+        if (text.contains("evening") || text.contains("night")) return "8:00 PM";
+
+        if (text.contains(":")) return getFrequency();
+
+        return "8:00 AM"; // default fallback
+    }
 }

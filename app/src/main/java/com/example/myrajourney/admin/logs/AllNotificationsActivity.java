@@ -8,17 +8,16 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
 import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.Notification;
-// ---------------------
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +28,14 @@ import retrofit2.Response;
 
 public class AllNotificationsActivity extends AppCompatActivity {
 
-    RecyclerView recyclerView;
-    EditText searchBar;
-    List<Notification> notifications, filteredList;
-    NotificationsAdapter adapter;
-    ProgressBar progress;
+    private RecyclerView recyclerView;
+    private EditText searchBar;
+    private ProgressBar progress;
+
+    private final List<Notification> notifications = new ArrayList<>();
+    private final List<Notification> filteredList = new ArrayList<>();
+
+    private NotificationsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +46,7 @@ public class AllNotificationsActivity extends AppCompatActivity {
         searchBar = findViewById(R.id.search_bar);
         progress = findViewById(R.id.progress);
 
-        // Back button
         findViewById(R.id.back_button).setOnClickListener(v -> finish());
-
-        notifications = new ArrayList<>();
-        filteredList = new ArrayList<>(notifications);
 
         adapter = new NotificationsAdapter(this, filteredList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -57,53 +55,75 @@ public class AllNotificationsActivity extends AppCompatActivity {
         loadNotifications();
 
         searchBar.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filter(s.toString());
+                filter(s.toString().trim());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
         });
     }
 
     private void filter(String query) {
         filteredList.clear();
+
+        String q = query.toLowerCase();
+
         for (Notification n : notifications) {
-            // Uses getBody() helper method
-            String hay = (n.getTitle() + " " + (n.getBody() == null ? "" : n.getBody())).toLowerCase();
-            if (hay.contains(query.toLowerCase())) {
+
+            String title = n.getTitle() == null ? "" : n.getTitle().toLowerCase();
+            String body = n.getBody() == null ? "" : n.getBody().toLowerCase();
+
+            if (title.contains(q) || body.contains(q)) {
                 filteredList.add(n);
             }
         }
+
         adapter.notifyDataSetChanged();
     }
 
     private void loadNotifications() {
         progress.setVisibility(View.VISIBLE);
+
         ApiService api = ApiClient.getApiService(this);
-        Call<ApiResponse<List<Notification>>> call = api.getNotifications(1, 20, null);
+        Call<ApiResponse<List<Notification>>> call =
+                api.getNotifications(1, 20, null);
 
         call.enqueue(new Callback<ApiResponse<List<Notification>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<Notification>>> call, Response<ApiResponse<List<Notification>>> response) {
+            public void onResponse(Call<ApiResponse<List<Notification>>> call,
+                                   Response<ApiResponse<List<Notification>>> response) {
+
                 progress.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    notifications.clear();
-                    notifications.addAll(response.body().getData());
-                    filter(TextUtils.isEmpty(searchBar.getText()) ? "" : searchBar.getText().toString());
-                } else {
-                    Toast.makeText(AllNotificationsActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+
+                if (!response.isSuccessful() || response.body() == null) {
+                    Toast.makeText(AllNotificationsActivity.this,
+                            "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                if (!response.body().isSuccess()) {
+                    Toast.makeText(AllNotificationsActivity.this,
+                            "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                notifications.clear();
+
+                List<Notification> data = response.body().getData();
+                if (data != null) notifications.addAll(data);
+
+                filter(TextUtils.isEmpty(searchBar.getText())
+                        ? ""
+                        : searchBar.getText().toString());
             }
 
             @Override
             public void onFailure(Call<ApiResponse<List<Notification>>> call, Throwable t) {
                 progress.setVisibility(View.GONE);
-                Toast.makeText(AllNotificationsActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AllNotificationsActivity.this,
+                        "Network error", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -7,12 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.List;
 
 import com.example.myrajourney.R;
 import com.example.myrajourney.data.model.Patient;
+
+import java.util.List;
 
 public class PatientsAdapter extends RecyclerView.Adapter<PatientsAdapter.PatientViewHolder> {
 
@@ -38,27 +40,28 @@ public class PatientsAdapter extends RecyclerView.Adapter<PatientsAdapter.Patien
         String name = (patient.getName() != null) ? patient.getName() : "Unknown";
         holder.name.setText(name);
 
-        // Display logic for the list item
-        String age = patient.getAge();
+        // ✅ FIXED AGE — always show the actual value coming from API
+        String age = (patient.getAge() != null && !patient.getAge().trim().isEmpty())
+                ? patient.getAge()
+                : "N/A";
+
+        // Build the details string
         StringBuilder details = new StringBuilder();
-        if (age != null && !age.equals("N/A")) {
-            details.append("Age: ").append(age);
-        } else {
-            details.append("Age: --");
-        }
+        details.append("Age: ").append(age);
 
         if (patient.getEmail() != null) {
             details.append(" | ").append(patient.getEmail());
         }
+
         holder.details.setText(details.toString());
         holder.image.setImageResource(R.drawable.ic_person_default);
 
-        // ✅ CRITICAL FIX: Passing the age to the details activity
+        // PASS AGE CORRECTLY TO NEXT SCREEN
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, PatientDetailsActivity.class);
             intent.putExtra("patient_id", patient.getId());
             intent.putExtra("patient_name", name);
-            intent.putExtra("patient_age", age); // Passing value here
+            intent.putExtra("patient_age", age);   // ← ALWAYS CORRECT NOW
             intent.putExtra("patient_email", patient.getEmail());
             intent.putExtra("patient_image", R.drawable.ic_person_default);
             context.startActivity(intent);

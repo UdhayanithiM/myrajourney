@@ -16,7 +16,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.auth.LoginActivity;
 import com.example.myrajourney.core.network.ApiClient;
@@ -26,7 +25,6 @@ import com.example.myrajourney.data.model.ApiResponse;
 import com.example.myrajourney.data.model.Medication;
 import com.example.myrajourney.data.model.MedicationLog;
 import com.example.myrajourney.data.model.MedicationLogRequest;
-// ---------------------
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,7 +42,6 @@ public class PatientMedicationsActivity extends AppCompatActivity {
     private LinearLayout medicationsContainer;
     private TextView noMedicationsText;
     private List<MedicationSchedule> todayMedications;
-    private List<Medication> allMedications;
     private SessionManager sessionManager;
 
     @Override
@@ -53,8 +50,6 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_patient_medications);
 
         sessionManager = new SessionManager(this);
-
-        // Check if user is logged in
         if (!sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -62,91 +57,72 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         }
 
         initializeViews();
-        loadTodayMedications();
+        loadMedicationsFromAPI();
     }
 
     private void initializeViews() {
         medicationsContainer = findViewById(R.id.medicationsContainer);
         noMedicationsText = findViewById(R.id.noMedicationsText);
-
-        // Back button
         findViewById(R.id.backButton).setOnClickListener(v -> finish());
     }
 
-    private void loadTodayMedications() {
-        todayMedications = new ArrayList<>();
-        // Load medications from API
-        loadMedicationsFromAPI();
-    }
-
     private void loadMedicationsFromAPI() {
+        todayMedications = new ArrayList<>();
         ApiService apiService = ApiClient.getApiService(this);
+
+        // GET /api/v1/patient-medications
         Call<ApiResponse<List<Medication>>> call = apiService.getPatientMedications();
 
         call.enqueue(new Callback<ApiResponse<List<Medication>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<Medication>>> call,
-                                   Response<ApiResponse<List<Medication>>> response) {
+            public void onResponse(Call<ApiResponse<List<Medication>>> call, Response<ApiResponse<List<Medication>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     List<Medication> medications = response.body().getData();
-                    allMedications = medications != null ? medications : new ArrayList<>();
 
                     if (medications != null && !medications.isEmpty()) {
-                        // Convert API medications to local MedicationSchedule
                         for (Medication med : medications) {
-                            // Check status
                             if (med.isActive()) {
-                                String time = parseTimeFromFrequency(med.getFrequency());
+                                // Check local SharedPreferences for today's status
+                                boolean isCompleted = checkLocalCompletionStatus(med.getId(), med.getName());
 
-                                // Check if completed locally today
-                                boolean isCompleted = checkLocalCompletionStatus(med.getName());
-
+                                // ✅ CRITICAL: Pass the API ID (med.getId()) to the schedule object
                                 todayMedications.add(new MedicationSchedule(
+                                        med.getId(),
                                         med.getName(),
                                         med.getDosage(),
-                                        time,
+                                        med.getFormattedTime(),
                                         isCompleted
                                 ));
                             }
                         }
                         displayMedications();
                     } else {
-                        displayMedications(); // Show empty state
+                        showEmptyState();
                     }
                 } else {
-                    allMedications = new ArrayList<>();
-                    displayMedications();
+                    showEmptyState();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<List<Medication>>> call, Throwable t) {
-                Toast.makeText(PatientMedicationsActivity.this, "Failed to load medications", Toast.LENGTH_SHORT).show();
-                displayMedications();
+                Toast.makeText(PatientMedicationsActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                showEmptyState();
             }
         });
     }
 
-    private String parseTimeFromFrequency(String frequency) {
-        if (frequency == null || frequency.isEmpty()) {
-            return "8:00 AM"; // Default
-        }
-        String lowerFreq = frequency.toLowerCase();
-        if (lowerFreq.contains("morning") || lowerFreq.contains("once")) return "8:00 AM";
-        else if (lowerFreq.contains("afternoon")) return "2:00 PM";
-        else if (lowerFreq.contains("evening") || lowerFreq.contains("night")) return "8:00 PM";
-
-        return "8:00 AM";
+    private void showEmptyState() {
+        medicationsContainer.removeAllViews();
+        noMedicationsText.setVisibility(View.VISIBLE);
     }
 
     private void displayMedications() {
         medicationsContainer.removeAllViews();
-
         if (todayMedications.isEmpty()) {
             noMedicationsText.setVisibility(View.VISIBLE);
             return;
         }
-
         noMedicationsText.setVisibility(View.GONE);
 
         for (MedicationSchedule med : todayMedications) {
@@ -154,7 +130,7 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         }
     }
 
-    private void addMedicationCard(MedicationSchedule medication) {
+    private void addMedicationCard(MedicationSchedule med) {
         View cardView = getLayoutInflater().inflate(R.layout.item_patient_medication, medicationsContainer, false);
 
         TextView medName = cardView.findViewById(R.id.medicineName);
@@ -163,173 +139,147 @@ public class PatientMedicationsActivity extends AppCompatActivity {
         Button statusButton = cardView.findViewById(R.id.statusButton);
         Button setReminderBtn = cardView.findViewById(R.id.setReminderBtn);
 
-        medName.setText(medication.getName());
-        medDosage.setText(medication.getDosage());
-        medTime.setText("Due: " + medication.getTime());
+        medName.setText(med.getName());
+        medDosage.setText(med.getDosage());
+        medTime.setText("Due: " + med.getTime());
 
-        if (medication.isCompleted()) {
+        if (med.isCompleted()) {
             statusButton.setText("✅ Completed");
             statusButton.setBackgroundColor(getColor(android.R.color.holo_green_dark));
             setReminderBtn.setVisibility(View.GONE);
-            statusButton.setEnabled(false); // Prevent multiple clicks
+            statusButton.setEnabled(false);
         } else {
-            statusButton.setText("⏳ Pending");
+            statusButton.setText("⏳ Mark Taken");
             statusButton.setBackgroundColor(getColor(android.R.color.holo_orange_light));
+            setReminderBtn.setVisibility(View.VISIBLE);
+            statusButton.setEnabled(true);
         }
 
         statusButton.setOnClickListener(v -> {
-            if (!medication.isCompleted()) {
-                medication.setCompleted(true);
-                statusButton.setText("✅ Completed");
+            if (!med.isCompleted()) {
+                med.setCompleted(true);
+
+                // Update UI immediately
+                statusButton.setText("✅ Taken");
                 statusButton.setBackgroundColor(getColor(android.R.color.holo_green_dark));
                 setReminderBtn.setVisibility(View.GONE);
                 statusButton.setEnabled(false);
 
-                // Save completion status locally
-                saveMedicationStatus(medication.getName(), true);
+                // 1. Save locally
+                saveMedicationStatus(med.getApiId(), med.getName(), true);
 
-                // Log medication intake to backend
-                logMedicationIntake(medication.getName(), medication.getDosage());
+                // 2. Send to Backend
+                logMedicationIntake(med.getApiId(), med.getDosage());
 
-                Toast.makeText(this, "Medication marked as completed!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Marked as taken!", Toast.LENGTH_SHORT).show();
             }
         });
 
-        setReminderBtn.setOnClickListener(v -> {
-            setMedicationReminder(medication);
-        });
+        setReminderBtn.setOnClickListener(v -> setMedicationReminder(med));
 
         medicationsContainer.addView(cardView);
     }
 
-    private void setMedicationReminder(MedicationSchedule medication) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
-            Date time = sdf.parse(medication.getTime());
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(time);
-
-            Calendar today = Calendar.getInstance();
-            calendar.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
-
-            if (calendar.before(today)) {
-                calendar.add(Calendar.DAY_OF_MONTH, 1);
-            }
-
-            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(this, MedicationReminderReceiver.class);
-            intent.putExtra("medication_name", medication.getName());
-            intent.putExtra("medication_dosage", medication.getDosage());
-
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, medication.hashCode(),
-                    intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-            }
-
-            Toast.makeText(this, "Reminder set for " + medication.getName(), Toast.LENGTH_SHORT).show();
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Error setting reminder", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private boolean checkLocalCompletionStatus(String medicationName) {
-        SharedPreferences prefs = getSharedPreferences("medication_status", Context.MODE_PRIVATE);
-        return prefs.getBoolean(medicationName + "_" + getCurrentDate(), false);
-    }
-
-    private void saveMedicationStatus(String medicationName, boolean completed) {
-        SharedPreferences prefs = getSharedPreferences("medication_status", Context.MODE_PRIVATE);
-        prefs.edit().putBoolean(medicationName + "_" + getCurrentDate(), completed).apply();
-    }
-
-    private String getCurrentDate() {
-        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-    }
-
-    private void logMedicationIntake(String medicationName, String dosage) {
-        Integer medicationId = null;
-        // Match name to find ID from the loaded list
-        for (Medication med : getAllMedications()) {
-            if (med.getName() != null && med.getName().equals(medicationName)) {
-                try {
-                    if (med.getId() != null) {
-                        medicationId = Integer.parseInt(med.getId());
-                        break;
-                    }
-                } catch (NumberFormatException e) {
-                    Log.e("MedicationLog", "Invalid ID format: " + med.getId());
-                }
-            }
-        }
-
-        if (medicationId == null) {
-            Log.e("MedicationLog", "Medication ID not found for: " + medicationName);
-            return;
-        }
+    private void logMedicationIntake(String patientMedicationId, String dosage) {
+        if (patientMedicationId == null) return;
 
         ApiService apiService = ApiClient.getApiService(this);
-
-        // ✅ FIXED: Use the correct constructor and convert ID to String
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        MedicationLogRequest request = new MedicationLogRequest(String.valueOf(medicationId), timestamp);
 
-        // Optional setters if needed by your API logic, but constructor handles essentials
+        // ✅ Uses the ID directly from the object, no name-lookup required
+        MedicationLogRequest request = new MedicationLogRequest(patientMedicationId, timestamp);
         request.setDosage(dosage);
         request.setStatus("TAKEN");
 
-        Call<ApiResponse<MedicationLog>> call = apiService.logMedicationIntake(request);
-
-        call.enqueue(new Callback<ApiResponse<MedicationLog>>() {
+        apiService.logMedicationIntake(request).enqueue(new Callback<ApiResponse<MedicationLog>>() {
             @Override
             public void onResponse(Call<ApiResponse<MedicationLog>> call, Response<ApiResponse<MedicationLog>> response) {
-                // Success logging
-                if (response.isSuccessful()) {
-                    Log.d("MedicationLog", "Successfully logged medication");
-                } else {
-                    Log.e("MedicationLog", "Failed to log medication: " + response.message());
+                if (!response.isSuccessful()) {
+                    Log.e("MedLog", "Failed to sync: " + response.message());
                 }
             }
-
             @Override
             public void onFailure(Call<ApiResponse<MedicationLog>> call, Throwable t) {
-                Log.e("MedicationLog", "Network error logging medication", t);
+                Log.e("MedLog", "Sync error", t);
             }
         });
     }
 
-    private List<Medication> getAllMedications() {
-        return allMedications != null ? allMedications : new ArrayList<>();
+    private void setMedicationReminder(MedicationSchedule med) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+            Date time = sdf.parse(med.getTime());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(time);
+
+            // Set for today
+            Calendar reminderTime = Calendar.getInstance();
+            reminderTime.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY));
+            reminderTime.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE));
+            reminderTime.set(Calendar.SECOND, 0);
+
+            if (reminderTime.before(Calendar.getInstance())) {
+                reminderTime.add(Calendar.DAY_OF_MONTH, 1); // Set for tomorrow if time passed
+            }
+
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(this, MedicationReminderReceiver.class);
+            intent.putExtra("medication_name", med.getName());
+            intent.putExtra("medication_dosage", med.getDosage());
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, med.hashCode(),
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
+
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminderTime.getTimeInMillis(), pendingIntent);
+            Toast.makeText(this, "Reminder set for " + med.getTime(), Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Could not set reminder", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    // Inner class for simple UI model
+    // --- Local Storage Helpers ---
+    private String getCurrentDate() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+    }
+
+    private boolean checkLocalCompletionStatus(String id, String name) {
+        SharedPreferences prefs = getSharedPreferences("med_status", Context.MODE_PRIVATE);
+        // Fallback to name if ID is null (for legacy/dummy data compatibility)
+        String key = (id != null ? id : name) + "_" + getCurrentDate();
+        return prefs.getBoolean(key, false);
+    }
+
+    private void saveMedicationStatus(String id, String name, boolean completed) {
+        SharedPreferences prefs = getSharedPreferences("med_status", Context.MODE_PRIVATE);
+        String key = (id != null ? id : name) + "_" + getCurrentDate();
+        prefs.edit().putBoolean(key, completed).apply();
+    }
+
+    // --- Inner Model ---
     private static class MedicationSchedule {
+        private String apiId; // Added this field
         private String name;
         private String dosage;
         private String time;
         private boolean completed;
 
-        public MedicationSchedule(String name, String dosage, String time, boolean completed) {
+        public MedicationSchedule(String apiId, String name, String dosage, String time, boolean completed) {
+            this.apiId = apiId;
             this.name = name;
             this.dosage = dosage;
             this.time = time;
             this.completed = completed;
         }
 
+        public String getApiId() { return apiId; }
         public String getName() { return name; }
         public String getDosage() { return dosage; }
         public String getTime() { return time; }
         public boolean isCompleted() { return completed; }
         public void setCompleted(boolean completed) { this.completed = completed; }
-        // Added hashCode for PendingIntent uniqueness
+
         @Override
-        public int hashCode() {
-            return (name + time).hashCode();
-        }
+        public int hashCode() { return (name + time).hashCode(); }
     }
 }

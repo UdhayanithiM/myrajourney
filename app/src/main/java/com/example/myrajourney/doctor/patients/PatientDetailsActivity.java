@@ -1,16 +1,15 @@
 package com.example.myrajourney.doctor.patients;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
+import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,22 +19,21 @@ import com.example.myrajourney.admin.users.EditPatientActivity;
 import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
 import com.example.myrajourney.data.model.ApiResponse;
-import com.example.myrajourney.data.model.Appointment;
 import com.example.myrajourney.data.model.Medication;
-import com.example.myrajourney.data.model.Rehab;
 import com.example.myrajourney.data.model.Report;
-import com.example.myrajourney.patient.appointments.AppointmentAdapter;
-import com.example.myrajourney.patient.medications.AddMedicationAdapter;
 import com.example.myrajourney.patient.medications.MedicationsAdapter;
 import com.example.myrajourney.patient.rehab.RehabAdapter;
-import com.example.myrajourney.common.rehab.AddRehabAdapter;
+import com.example.myrajourney.patient.appointments.AppointmentAdapter;
 import com.example.myrajourney.patient.reports.ReportDetailsActivity;
 import com.example.myrajourney.patient.reports.ReportsAdapter;
+import com.example.myrajourney.data.model.Appointment;
+import com.example.myrajourney.data.model.Rehab;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -43,26 +41,25 @@ import retrofit2.Response;
 
 public class PatientDetailsActivity extends AppCompatActivity {
 
-    // UI Components
+    private static final int REQ_ADD_REHAB = 2001;
+
     private TextView patientName, patientAge, patientId;
     private ImageView patientImage;
     private RecyclerView medsRecycler, rehabRecycler, appointmentRecycler, reportsRecycler;
     private EditText alertMessage, etDiagnosis, etSuggestions;
-    private Button sendAlert, editPatientBtn, btnAddMedication, btnAddRehab, btnSaveDiagnosis;
 
-    // Data Lists
-    private List<Medication> medicationsList, availableMedications;
-    private List<Rehab> rehabList, availableRehabExercises;
+    private Button sendAlert, editPatientBtn, btnAssignMedication, btnAddRehab, btnSaveDiagnosis;
+
+    private List<Medication> medicationsList;
+    private List<Rehab> rehabList;
     private List<Appointment> appointmentList;
     private List<Report> reportsList;
 
-    // Adapters
     private MedicationsAdapter medicationsAdapter;
     private RehabAdapter rehabAdapter;
     private AppointmentAdapter appointmentAdapter;
     private ReportsAdapter reportsAdapter;
 
-    // Variables
     private int currentPatientId;
     private String currentPatientName;
 
@@ -72,10 +69,22 @@ public class PatientDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_patient_details);
 
         initViews();
-        setupPatientInfo(); // Critical Step
+        setupPatientInfo();
         setupRecyclerViews();
         setupButtons();
+
         loadReportsFromBackend();
+        loadMedicationsFromBackend();
+        loadRehabFromBackend();
+        loadAppointmentsFromBackend();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadMedicationsFromBackend();
+        loadRehabFromBackend();
+        loadAppointmentsFromBackend();
     }
 
     private void initViews() {
@@ -92,7 +101,8 @@ public class PatientDetailsActivity extends AppCompatActivity {
         alertMessage = findViewById(R.id.alertMessage);
         sendAlert = findViewById(R.id.sendAlert);
         editPatientBtn = findViewById(R.id.editPatientBtn);
-        btnAddMedication = findViewById(R.id.btnAddMedication);
+
+        btnAssignMedication = findViewById(R.id.btnAssignMedication);
         btnAddRehab = findViewById(R.id.btnAddRehab);
         etDiagnosis = findViewById(R.id.etDiagnosis);
         etSuggestions = findViewById(R.id.etSuggestions);
@@ -106,44 +116,25 @@ public class PatientDetailsActivity extends AppCompatActivity {
         String ageRaw = intent.getStringExtra("patient_age");
         int imageRes = intent.getIntExtra("patient_image", R.drawable.ic_person_default);
 
-        // 1. Name
         patientName.setText(currentPatientName != null ? currentPatientName : "Unknown");
 
-        // 2. ID
-        if (currentPatientId != 0) {
-            patientId.setText("ID: " + currentPatientId);
-        } else {
-            patientId.setText("ID: --");
-        }
+        patientId.setText("ID: " + (currentPatientId == 0 ? "--" : currentPatientId));
 
-        // 3. Age Logic (Robust)
-        if (ageRaw != null && !ageRaw.trim().isEmpty() && !ageRaw.equals("N/A") && !ageRaw.equals("0")) {
-            // Check if "Years" is already in the string to avoid duplication
-            if (ageRaw.toLowerCase().contains("years")) {
-                patientAge.setText("Age: " + ageRaw);
-            } else {
-                patientAge.setText("Age: " + ageRaw + " Years");
-            }
+        if (ageRaw != null && !ageRaw.trim().isEmpty()) {
+            patientAge.setText("Age: " + ageRaw.replace("Years", "").trim() + " Years");
         } else {
             patientAge.setText("Age: Not Provided");
         }
 
-        // 4. Image
         patientImage.setImageResource(imageRes);
     }
 
     private void setupRecyclerViews() {
-        // Initialize all lists to empty
         medicationsList = new ArrayList<>();
         rehabList = new ArrayList<>();
         appointmentList = new ArrayList<>();
         reportsList = new ArrayList<>();
 
-        // Load data for selection dialogs
-        initializeAvailableMedications();
-        initializeAvailableRehabExercises();
-
-        // Setup Adapters
         medicationsAdapter = new MedicationsAdapter(this, medicationsList);
         medsRecycler.setLayoutManager(new LinearLayoutManager(this));
         medsRecycler.setAdapter(medicationsAdapter);
@@ -162,136 +153,224 @@ public class PatientDetailsActivity extends AppCompatActivity {
     }
 
     private void setupButtons() {
+
         editPatientBtn.setOnClickListener(v -> {
             Intent intent = new Intent(this, EditPatientActivity.class);
             intent.putExtra("patient_id", currentPatientId);
             intent.putExtra("patient_name", currentPatientName);
-            intent.putExtra("patient_age", patientAge.getText().toString().replace("Age: ", "").replace(" Years", ""));
+            intent.putExtra("patient_age", patientAge.getText().toString().replace("Age: ", ""));
             startActivity(intent);
         });
 
-        btnAddMedication.setOnClickListener(v -> showMedicationSelectionDialog());
-        btnAddRehab.setOnClickListener(v -> showRehabExerciseSelectionDialog());
+        btnAssignMedication.setOnClickListener(v -> {
+            if (currentPatientId == 0) {
+                Toast.makeText(this, "Invalid patient", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(this, com.example.myrajourney.doctor.meds.DoctorAssignMedicationActivity.class);
+            intent.putExtra("patient_id", currentPatientId);
+            intent.putExtra("patient_name", currentPatientName);
+            startActivity(intent);
+        });
+
+        btnAddRehab.setOnClickListener(v -> {
+            if (currentPatientId == 0) {
+                Toast.makeText(this, "Invalid patient", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(this, com.example.myrajourney.common.rehab.AddRehabActivity.class);
+            startActivityForResult(intent, REQ_ADD_REHAB);
+        });
 
         sendAlert.setOnClickListener(v -> {
-            if (!alertMessage.getText().toString().isEmpty()) {
+            if (!TextUtils.isEmpty(alertMessage.getText().toString().trim())) {
                 Toast.makeText(this, "Alert sent", Toast.LENGTH_SHORT).show();
                 alertMessage.setText("");
             }
         });
 
         btnSaveDiagnosis.setOnClickListener(v -> {
-            if (!etDiagnosis.getText().toString().isEmpty()) {
+            if (!TextUtils.isEmpty(etDiagnosis.getText().toString().trim())) {
                 Toast.makeText(this, "Diagnosis saved", Toast.LENGTH_SHORT).show();
                 etDiagnosis.setText("");
                 etSuggestions.setText("");
             }
         });
 
+        // FIXED: Correct patient → doctor mode report opening
         reportsAdapter.setOnReportClickListener(report -> {
             Intent intent = new Intent(this, ReportDetailsActivity.class);
-            intent.putExtra("report_name", report.getName());
-            intent.putExtra("report_date", report.getDate());
+            intent.putExtra("patient_name", currentPatientName);
+            intent.putExtra("report_type", report.getTitle());
+            intent.putExtra("report_date", report.getCreatedAt());
+            intent.putExtra("report_status", report.getStatus());
+            intent.putExtra("report_id", report.getId());
             intent.putExtra("report_file", report.getFileUrl());
             startActivity(intent);
         });
     }
 
-    private void loadReportsFromBackend() {
+    // ---------- APPOINTMENTS ----------
+    private void loadAppointmentsFromBackend() {
+        appointmentList.clear();
+        appointmentAdapter.notifyDataSetChanged();
+
         if (currentPatientId == 0) return;
 
-        ApiService apiService = ApiClient.getApiService(this);
-        Call<ApiResponse<List<Report>>> call = apiService.getReports(); // Ideally filter by ID
+        ApiService api = ApiClient.getApiService(this);
 
-        call.enqueue(new Callback<ApiResponse<List<Report>>>() {
+        api.getAppointments(currentPatientId, null).enqueue(new Callback<ApiResponse<List<Appointment>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<Report>>> call, Response<ApiResponse<List<Report>>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
-                    reportsList.clear();
+            public void onResponse(Call<ApiResponse<List<Appointment>>> call,
+                                   Response<ApiResponse<List<Appointment>>> response) {
+
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    List<Appointment> data = response.body().getData();
+                    if (data != null) appointmentList.addAll(data);
+                }
+                appointmentAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<Appointment>>> call, Throwable t) {
+                appointmentAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    // ---------- MEDICATIONS ----------
+    private void loadMedicationsFromBackend() {
+        if (currentPatientId == 0) {
+            medicationsList.clear();
+            medicationsAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        ApiService api = ApiClient.getApiService(this);
+
+        api.getPatientMedications(currentPatientId)
+                .enqueue(new Callback<ApiResponse<List<Medication>>>() {
+                    @Override
+                    public void onResponse(Call<ApiResponse<List<Medication>>> call,
+                                           Response<ApiResponse<List<Medication>>> response) {
+
+                        medicationsList.clear();
+
+                        if (response.isSuccessful() &&
+                                response.body() != null &&
+                                response.body().isSuccess()) {
+
+                            List<Medication> list = response.body().getData();
+                            if (list != null) medicationsList.addAll(list);
+                        }
+                        medicationsAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<List<Medication>>> call, Throwable t) {
+                        medicationsList.clear();
+                        medicationsAdapter.notifyDataSetChanged();
+                    }
+                });
+    }
+
+    // ---------- REHAB ----------
+    private void loadRehabFromBackend() {
+        rehabList.clear();
+        rehabAdapter.notifyDataSetChanged();
+
+        if (currentPatientId == 0) return;
+
+        ApiService api = ApiClient.getApiService(this);
+
+        api.getRehabPlans(currentPatientId)
+                .enqueue(new Callback<ApiResponse<List<com.example.myrajourney.data.model.RehabPlan>>>() {
+                    @Override
+                    public void onResponse(Call<ApiResponse<List<com.example.myrajourney.data.model.RehabPlan>>> call,
+                                           Response<ApiResponse<List<com.example.myrajourney.data.model.RehabPlan>>> response) {
+
+                        if (response.isSuccessful() &&
+                                response.body() != null &&
+                                response.body().isSuccess()) {
+
+                            List<com.example.myrajourney.data.model.RehabPlan> plans = response.body().getData();
+
+                            if (plans != null) {
+                                for (com.example.myrajourney.data.model.RehabPlan plan : plans) {
+
+                                    List<com.example.myrajourney.data.model.RehabPlan.RehabExercise> exercises =
+                                            plan.getExercises();
+
+                                    if (exercises != null && !exercises.isEmpty()) {
+                                        for (com.example.myrajourney.data.model.RehabPlan.RehabExercise ex : exercises) {
+                                            rehabList.add(
+                                                    new Rehab(
+                                                            ex.getName(),
+                                                            ex.getDescription(),
+                                                            String.valueOf(ex.getReps()),
+                                                            "1 set/day",
+                                                            plan.getVideoUrl(),
+                                                            ""
+                                                    )
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        rehabAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<List<com.example.myrajourney.data.model.RehabPlan>>> call, Throwable t) {
+                        rehabAdapter.notifyDataSetChanged();
+                    }
+                });
+    }
+
+    // ---------- REPORTS ----------
+    private void loadReportsFromBackend() {
+        reportsList.clear();
+        reportsAdapter.notifyDataSetChanged();
+
+        if (currentPatientId == 0) return;
+
+        ApiService api = ApiClient.getApiService(this);
+
+        api.getReports().enqueue(new Callback<ApiResponse<List<Report>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<Report>>> call,
+                                   Response<ApiResponse<List<Report>>> response) {
+
+                if (response.isSuccessful() &&
+                        response.body() != null &&
+                        response.body().getData() != null) {
+
                     for (Report r : response.body().getData()) {
-                        String date = r.getUploadedAt() != null ? r.getUploadedAt().substring(0, 10) : "Unknown";
-                        reportsList.add(new Report(r.getTitle(), date, r.getFileUrl()));
+
+                        // IMPORTANT FIX:
+                        // Only load reports for THIS patient
+                        if (String.valueOf(r.getPatientId()).equals(String.valueOf(currentPatientId))) {
+
+                            Report model = new Report();
+                            model.setId(r.getId());
+                            model.setPatientId(r.getPatientId());
+                            model.setPatientName(currentPatientName);
+                            model.setTitle(r.getTitle());
+                            model.setFileUrl(r.getFileUrl());
+                            model.setStatus(r.getStatus());
+                            model.setCreatedAt(r.getCreatedAt());
+
+                            reportsList.add(model);
+                        }
                     }
                     reportsAdapter.notifyDataSetChanged();
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<List<Report>>> call, Throwable t) {
-                // Handle failure silently or show toast
-            }
+            public void onFailure(Call<ApiResponse<List<Report>>> call, Throwable t) { }
         });
-    }
-
-    // --- Helpers ---
-    private void initializeAvailableMedications() {
-        availableMedications = new ArrayList<>();
-        availableMedications.add(new Medication("Methotrexate", "7.5mg", "Weekly", "Ongoing", "Tablet", "DMARD", "Available"));
-        availableMedications.add(new Medication("Hydroxychloroquine", "200mg", "Daily", "30 days", "Tablet", "DMARD", "Available"));
-        availableMedications.add(new Medication("Ibuprofen", "400mg", "As needed", "7 days", "Tablet", "NSAID", "Available"));
-    }
-
-    private void initializeAvailableRehabExercises() {
-        availableRehabExercises = new ArrayList<>();
-        availableRehabExercises.add(new Rehab("Hand Squeeze", "Squeeze a soft ball", "10 reps", "Daily", "", ""));
-        availableRehabExercises.add(new Rehab("Wrist Extensions", "Extend wrist", "15 reps", "Daily", "", ""));
-    }
-
-    private void showMedicationSelectionDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_select_medications, null);
-        RecyclerView rv = view.findViewById(R.id.medicationsRecyclerView);
-
-        List<Medication> selectionList = new ArrayList<>();
-        for(Medication m : availableMedications) {
-            selectionList.add(new Medication(m.getName(), m.getDosage(), m.getFrequency(), m.getDuration(), m.getType(), m.getCategory(), m.getStatus()));
-        }
-
-        AddMedicationAdapter adapter = new AddMedicationAdapter(this, selectionList);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(adapter);
-
-        AlertDialog dialog = builder.setView(view).create();
-
-        view.findViewById(R.id.btnCancel).setOnClickListener(v -> dialog.dismiss());
-        view.findViewById(R.id.btnAddSelected).setOnClickListener(v -> {
-            for(Medication m : selectionList) {
-                if(m.isTakenToday()) {
-                    medicationsList.add(m);
-                }
-            }
-            medicationsAdapter.notifyDataSetChanged();
-            dialog.dismiss();
-        });
-        dialog.show();
-    }
-
-    private void showRehabExerciseSelectionDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_select_rehab_exercises, null);
-        RecyclerView rv = view.findViewById(R.id.rehabExercisesRecyclerView);
-
-        List<Rehab> selectionList = new ArrayList<>();
-        for(Rehab r : availableRehabExercises) {
-            selectionList.add(new Rehab(r.getName(), r.getDescription(), r.getReps(), r.getFrequency(), r.getVideoUrl(), r.getThumbnailUrl()));
-        }
-
-        AddRehabAdapter adapter = new AddRehabAdapter(this, selectionList);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(adapter);
-
-        AlertDialog dialog = builder.setView(view).create();
-
-        view.findViewById(R.id.btnCancelRehab).setOnClickListener(v -> dialog.dismiss());
-        view.findViewById(R.id.btnAddSelectedRehab).setOnClickListener(v -> {
-            for(Rehab r : selectionList) {
-                if(r.isSelected()) {
-                    rehabList.add(r);
-                }
-            }
-            rehabAdapter.notifyDataSetChanged();
-            dialog.dismiss();
-        });
-        dialog.show();
     }
 }

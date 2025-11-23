@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -12,63 +13,107 @@
         android:icon="@drawable/logo"
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Myrajouney"
         android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.Myrajouney"
         android:networkSecurityConfig="@xml/network_security_config">
 
+        <!-- SPLASH / AUTH -->
         <activity
             android:name=".auth.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Myrajouney.FullScreen">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".auth.OnboardingActivity" android:theme="@style/Theme.Myrajouney.FullScreen" />
-        <activity android:name=".auth.LoginActivity" android:theme="@style/Theme.Myrajouney.FullScreen" />
-        <activity android:name=".auth.ForgotPasswordActivity" android:theme="@style/Theme.Myrajouney.FullScreen" />
+        <activity android:name=".auth.OnboardingActivity"
+            android:theme="@style/Theme.Myrajouney.FullScreen"
+            android:exported="false"/>
 
-        <activity android:name=".patient.dashboard.PatientDashboardActivity" />
-        <activity android:name=".doctor.dashboard.DoctorDashboardActivity" />
-        <activity android:name=".admin.dashboard.AdminDashboardActivity" />
+        <activity android:name=".auth.LoginActivity"
+            android:theme="@style/Theme.Myrajouney.FullScreen"
+            android:exported="true"/>
 
-        <activity android:name=".admin.users.CreatePatientActivity" />
-        <activity android:name=".admin.users.CreateDoctorActivity" />
-        <activity android:name=".admin.users.EditPatientActivity" />
-        <activity android:name=".admin.users.EditDoctorActivity" />
-        <activity android:name=".admin.dashboard.SettingsActivity" />
-        <activity android:name=".admin.logs.AllNotificationsActivity" />
-        <activity android:name=".admin.meds.AllMedicationsActivity" />
-        <activity android:name=".admin.rehab.AllRehabActivity" />
-        <activity android:name=".admin.assignments.AssignPatientToDoctorActivity" />
+        <activity android:name=".auth.ForgotPasswordActivity"
+            android:exported="false"/>
 
-        <activity android:name=".doctor.patients.AllPatientsActivity" />
-        <activity android:name=".doctor.patients.PatientDetailsActivity" />
-        <activity android:name=".doctor.appointments.DoctorScheduleActivity" />
-        <activity android:name=".doctor.appointments.AppointmentDetailsActivity" />
-        <activity android:name=".doctor.dashboard.HealthStatsActivity" />
-        <activity android:name=".doctor.reports.DoctorReportsActivity" />
 
-        <activity android:name=".patient.appointments.PatientAppointmentsActivity" />
-        <activity android:name=".patient.symptoms.SymptomLogActivity" />
-        <activity android:name=".patient.reports.UploadReportActivity" />
-        <activity android:name=".patient.reports.ReportList" />
-        <activity android:name=".patient.rehab.PatientRehabilitationActivity" />
-        <activity android:name=".patient.medications.PatientMedicationsActivity" />
-        <activity android:name=".patient.education.EducationHubActivity" />
-        <activity android:name=".patient.education.ArticleViewerActivity" />
+        <!-- DASHBOARDS -->
+        <activity android:name=".patient.dashboard.PatientDashboardActivity" android:exported="false"/>
+        <activity android:name=".doctor.dashboard.DoctorDashboardActivity" android:exported="false"/>
+        <activity android:name=".admin.dashboard.AdminDashboardActivity" android:exported="false"/>
 
-        <activity android:name=".common.appointments.AddAppointmentActivity" />
 
-        <receiver android:name=".patient.medications.MedicationReminderReceiver"
+        <!-- ADMIN -->
+        <activity android:name=".admin.users.CreatePatientActivity" android:exported="false"/>
+        <activity android:name=".admin.users.CreateDoctorActivity" android:exported="false"/>
+        <activity android:name=".admin.users.EditPatientActivity" android:exported="false"/>
+        <activity android:name=".admin.users.EditDoctorActivity" android:exported="false"/>
+        <activity android:name=".admin.dashboard.SettingsActivity" android:exported="false"/>
+        <activity android:name=".admin.logs.AllNotificationsActivity" android:exported="false"/>
+        <activity android:name=".admin.meds.AllMedicationsActivity" android:exported="false"/>
+        <activity android:name=".admin.rehab.AllRehabActivity" android:exported="false"/>
+        <activity android:name=".admin.assignments.AssignPatientToDoctorActivity" android:exported="false"/>
+
+
+        <!-- DOCTOR – APPOINTMENTS & PATIENTS -->
+        <activity android:name=".doctor.patients.AllPatientsActivity" android:exported="false"/>
+        <activity android:name=".doctor.patients.PatientDetailsActivity" android:exported="false"/>
+
+        <activity android:name=".doctor.appointments.DoctorScheduleActivity" android:exported="true"/>
+
+        <activity
+            android:name=".doctor.appointments.AppointmentDetailsActivity"
+            android:parentActivityName=".doctor.appointments.DoctorScheduleActivity"
+            android:exported="true"/>
+
+        <activity android:name=".doctor.dashboard.HealthStatsActivity" android:exported="false"/>
+        <activity android:name=".doctor.reports.DoctorReportsActivity" android:exported="false"/>
+        <activity android:name=".doctor.meds.DoctorAssignMedicationActivity" android:exported="false"/>
+
+
+        <!-- REHAB -->
+        <activity android:name=".common.rehab.AddRehabActivity" android:exported="false"/>
+
+
+        <!-- PATIENT APPOINTMENTS -->
+        <activity android:name=".patient.appointments.PatientAppointmentsActivity" android:exported="true"/>
+
+        <activity android:name=".patient.symptoms.SymptomLogActivity" android:exported="false"/>
+        <activity android:name=".patient.reports.UploadReportActivity" android:exported="false"/>
+        <activity android:name=".patient.reports.ReportList" android:exported="false"/>
+
+        <!-- ✅ ADDED: ReportDetailsActivity (Patient + Doctor both use this) -->
+        <activity
+            android:name=".patient.reports.ReportDetailsActivity"
+            android:exported="false" />
+
+        <activity android:name=".patient.rehab.PatientRehabilitationActivity" android:exported="false"/>
+        <activity android:name=".patient.medications.PatientMedicationsActivity" android:exported="false"/>
+        <activity android:name=".patient.education.EducationHubActivity" android:exported="false"/>
+        <activity android:name=".patient.education.ArticleViewerActivity" android:exported="false"/>
+
+
+        <!-- SHARED - ADD APPOINTMENT -->
+        <activity
+            android:name=".common.appointments.AddAppointmentActivity"
+            android:exported="true"
+            android:parentActivityName=".doctor.dashboard.DoctorDashboardActivity" />
+
+
+        <!-- MEDICATION REMINDER RECEIVERS -->
+        <receiver
+            android:name=".patient.medications.MedicationReminderReceiver"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"/>
 
-        <receiver android:name=".patient.medications.MarkMedicationTakenReceiver"
+        <receiver
+            android:name=".patient.medications.MarkMedicationTakenReceiver"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"/>
 
     </application>
+
 </manifest>

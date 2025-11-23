@@ -9,54 +9,113 @@ use Src\Utils\Response;
 
 class RehabController
 {
-	private RehabModel $rehab;
-	public function __construct(){ $this->rehab = new RehabModel(); }
+    private RehabModel $rehab;
 
-	public function listForPatient(): void
-	{
-		$auth = $_SERVER['auth'] ?? [];
-		$uid = (int)($auth['uid'] ?? 0);
-		$role = $auth['role'] ?? '';
-		
-		// Auto-set patient_id for PATIENT role
-		if ($role === 'PATIENT') {
-			$pid = $uid;
-		} else {
-			// For doctors/admins, require patient_id parameter
-			$pid = (int)($_GET['patient_id'] ?? 0);
-		}
-		
-		if (!$pid) {
-			Response::json(['success'=>false,'error'=>['code'=>'VALIDATION','message'=>'patient_id required']],422);
-			return;
-		}
-		
-		$data=$this->rehab->plans($pid);
-		Response::json(['success'=>true,'data'=>$data]);
-	}
+    public function __construct()
+    {
+        $this->rehab = new RehabModel();
+    }
 
-	public function createPlan(): void
-	{
-		$body=json_decode(file_get_contents('php://input'), true) ?? [];
-		if(empty($body['patient_id']) || empty($body['title'])){ Response::json(['success'=>false,'error'=>['code'=>'VALIDATION','message'=>'Missing fields']],422); return; }
-		$planId=$this->rehab->createPlan($body);
-		if (!empty($body['exercises']) && is_array($body['exercises'])) {
-			$this->rehab->addExercises($planId, $body['exercises']);
-		}
-		try { (new NotificationModel())->create((int)$body['patient_id'], 'REHAB', 'Rehab plan updated', (string)$body['title']); } catch (\Throwable $e) { }
-		Response::json(['success'=>true,'data'=>$this->rehab->planWithExercises($planId)],201);
-	}
+    /**
+     * List rehab plans for a patient
+     */
+    public function listForPatient(): void
+    {
+        $auth = $_SERVER['auth'] ?? [];
+        $uid = (int)($auth['uid'] ?? 0);
+        $role = $auth['role'] ?? '';
 
-	public function getPlan(int $id): void
-	{
-		$item=$this->rehab->planWithExercises($id);
-		if(!$item){ Response::json(['success'=>false,'error'=>['code'=>'NOT_FOUND','message'=>'Not found']],404); return; }
-		Response::json(['success'=>true,'data'=>$item]);
-	}
+        // PATIENT role = auto use UID
+        if ($role === 'PATIENT') {
+            $pid = $uid;
+        } else {
+            // Doctor/Admin must include patient_id in query
+            $pid = (int)($_GET['patient_id'] ?? 0);
+        }
+
+        if ($pid === 0) {
+            Response::json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION',
+                    'message' => 'patient_id required'
+                ]
+            ], 422);
+            return;
+        }
+
+        $data = $this->rehab->plans($pid);
+
+        Response::json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
+    /**
+     * Create a rehab plan with exercises
+     */
+    public function createPlan(): void
+    {
+        $body = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        if (empty($body['patient_id']) || empty($body['title'])) {
+            Response::json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION',
+                    'message' => 'Missing patient_id or title'
+                ]
+            ], 422);
+            return;
+        }
+
+        $planId = $this->rehab->createPlan($body);
+
+        if (!empty($body['exercises']) && is_array($body['exercises'])) {
+            $this->rehab->addExercises($planId, $body['exercises']);
+        }
+
+        try {
+            (new NotificationModel())->create(
+                (int)$body['patient_id'],
+                'REHAB',
+                'Rehab plan updated',
+                (string)$body['title']
+            );
+        } catch (\Throwable $e) {
+            // Notification failure ignored safely
+        }
+
+        $output = $this->rehab->planWithExercises($planId);
+
+        Response::json([
+            'success' => true,
+            'data' => $output
+        ], 201);
+    }
+
+    /**
+     * Fetch single plan with exercises
+     */
+    public function getPlan(int $id): void
+    {
+        $item = $this->rehab->planWithExercises($id);
+
+        if (!$item) {
+            Response::json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NOT_FOUND',
+                    'message' => 'Plan not found'
+                ]
+            ], 404);
+            return;
+        }
+
+        Response::json([
+            'success' => true,
+            'data' => $item
+        ]);
+    }
 }
-
-
-
-
-
-

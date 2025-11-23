@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// --- IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.common.messaging.ChatAdapter;
 import com.example.myrajourney.common.messaging.ChatBot;
@@ -29,8 +28,6 @@ import com.example.myrajourney.core.session.SessionManager;
 import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.data.model.Appointment;
 
-// Feature Activities
-// Removed unused DoctorDashboardActivity import to avoid confusion
 import com.example.myrajourney.patient.appointments.PatientAppointmentsActivity;
 import com.example.myrajourney.patient.education.EducationHubActivity;
 import com.example.myrajourney.patient.medications.PatientMedicationsActivity;
@@ -53,10 +50,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
 
-    // ViewModel
     private PatientDashboardViewModel viewModel;
 
-    // Chat functionality
     private RecyclerView chatRecyclerView;
     private ChatAdapter chatAdapter;
     private List<ChatMessage> chatMessages;
@@ -66,35 +61,35 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply theme before setting content view
         ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patient_dashboard_new);
 
-        // 1. Initialize Session
         sessionManager = new SessionManager(this);
 
-        // Check if user is logged in
         if (!sessionManager.isSessionValid()) {
             NavigationManager.goToLogin(this);
             finish();
             return;
         }
 
-        // 2. Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(PatientDashboardViewModel.class);
 
-        // 3. Initialize Views & Chat
         initializeViews();
         initializeChat();
         setupClickListeners();
-
-        // 4. Observe ViewModel Data
         observeViewModel();
     }
 
+    // ⭐ ADDED — refresh appointments when user returns
+    @Override
+    protected void onResume() {
+        super.onResume();
+        viewModel.refreshAppointments();
+    }
+
     private void observeViewModel() {
-        // Update Welcome Text
+
         viewModel.getCurrentUser().observe(this, name -> {
             TextView welcomeText = findViewById(R.id.welcomeText);
             if (welcomeText != null) {
@@ -102,23 +97,19 @@ public class PatientDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // Update Health Cards
         viewModel.getHealthMetrics().observe(this, metrics -> {
-            // Update health metrics UI logic here
+            // Future: update health cards
         });
 
-        // Update Appointment Cards
         viewModel.getUpcomingAppointments().observe(this, this::updateAppointmentCards);
 
-        // Handle Errors
         viewModel.getErrorMessage().observe(this, error -> {
-            if (error != null) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            }
+            if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show();
         });
     }
 
     private void updateAppointmentCards(List<Appointment> appointments) {
+
         TextView consultationTitle = findViewById(R.id.consultationTitle);
         TextView consultationDate = findViewById(R.id.consultationDate);
         TextView followupTitle = findViewById(R.id.followupTitle);
@@ -134,19 +125,30 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         List<Appointment> upcoming = new ArrayList<>(appointments);
 
-        // Update first card
+        // ⭐ FIXED — use formatted fields
         if (!upcoming.isEmpty() && consultationTitle != null) {
             Appointment first = upcoming.get(0);
+
             consultationTitle.setText(first.getTitle() != null ? first.getTitle() : "Appointment");
-            consultationDate.setText(first.getDate() + " " + first.getTimeSlot());
+
+            // ⭐ FIXED — correct date/time output
+            consultationDate.setText(
+                    first.getFormattedDate() + "  " + first.getFormattedTimeSlot()
+            );
+
             if (consultationCard != null) consultationCard.setVisibility(View.VISIBLE);
         }
 
-        // Update second card
         if (upcoming.size() > 1 && followupTitle != null) {
             Appointment second = upcoming.get(1);
+
             followupTitle.setText(second.getTitle() != null ? second.getTitle() : "Appointment");
-            followupDate.setText(second.getDate() + " " + second.getTimeSlot());
+
+            // ⭐ FIXED
+            followupDate.setText(
+                    second.getFormattedDate() + "  " + second.getFormattedTimeSlot()
+            );
+
             if (followupCard != null) followupCard.setVisibility(View.VISIBLE);
         }
     }
@@ -165,45 +167,47 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private void initializeChat() {
         chatBot = new ChatBot(this);
         chatMessages = new ArrayList<>();
-        chatAdapter = new ChatAdapter(this, chatMessages);
         chatMessages.add(new ChatMessage("Hello! I'm your RA assistant. How can I help you today?", false));
+
+        chatAdapter = new ChatAdapter(this, chatMessages);
     }
 
     private void setupClickListeners() {
-        // Task buttons logic
+
         if (yesBtn != null) {
             yesBtn.setOnClickListener(v -> {
                 viewModel.setTaskCompleted(true);
-                Toast.makeText(this, "Great! Task completed \u2705", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Great! Task completed ✔", Toast.LENGTH_SHORT).show();
             });
         }
 
         if (noBtn != null) {
-            noBtn.setOnClickListener(v -> {
-                Toast.makeText(this, "Please complete your task \u274C", Toast.LENGTH_SHORT).show();
-            });
+            noBtn.setOnClickListener(v ->
+                    Toast.makeText(this, "Please complete your task ❌", Toast.LENGTH_SHORT).show());
         }
 
-        // Chat
         View chatCard = findViewById(R.id.chatCard);
         if (chatCard != null) chatCard.setOnClickListener(v -> showChatDialog());
 
-        // Health Stats
         View healthCard = findViewById(R.id.healthStatsCard);
-        if (healthCard != null) healthCard.setOnClickListener(v -> startActivity(new Intent(this, HealthStatsActivity.class)));
+        if (healthCard != null) healthCard.setOnClickListener(v ->
+                startActivity(new Intent(this, HealthStatsActivity.class)));
 
-        // Appointment Details - redirect to main Appointments page
         View consultationBtn = findViewById(R.id.consultationDetailsBtn);
-        if (consultationBtn != null) consultationBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientAppointmentsActivity.class)));
+        if (consultationBtn != null)
+            consultationBtn.setOnClickListener(v ->
+                    startActivity(new Intent(this, PatientAppointmentsActivity.class)));
 
         View followupBtn = findViewById(R.id.followupDetailsBtn);
-        if (followupBtn != null) followupBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientAppointmentsActivity.class)));
+        if (followupBtn != null)
+            followupBtn.setOnClickListener(v ->
+                    startActivity(new Intent(this, PatientAppointmentsActivity.class)));
 
-        // Menu & Logout
         if (menuIcon != null) {
             menuIcon.setOnClickListener(v -> {
                 if (drawerLayout != null) {
-                    if (drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.closeDrawer(GravityCompat.START);
+                    if (drawerLayout.isDrawerOpen(GravityCompat.START))
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     else drawerLayout.openDrawer(GravityCompat.START);
                 }
             });
@@ -211,28 +215,29 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         if (logoutBtn != null) logoutBtn.setOnClickListener(v -> logout());
 
-        // Notifications
-        View notifBtn = findViewById(R.id.notificationsBtn);
-        if (notifBtn != null) {
-            notifBtn.setOnClickListener(v -> startActivity(new Intent(this, AllNotificationsActivity.class)));
-        }
-
-        // Quick Actions
         setupQuickActions();
     }
 
     private void setupQuickActions() {
+
         View symptomBtn = findViewById(R.id.symptomLogBtn);
-        if (symptomBtn != null) symptomBtn.setOnClickListener(v -> startActivity(new Intent(this, SymptomLogActivity.class)));
+        if (symptomBtn != null)
+            symptomBtn.setOnClickListener(v ->
+                    startActivity(new Intent(this, SymptomLogActivity.class)));
 
         View medsBtn = findViewById(R.id.medicationsBtn);
-        if (medsBtn != null) medsBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientMedicationsActivity.class)));
+        if (medsBtn != null)
+            medsBtn.setOnClickListener(v ->
+                    startActivity(new Intent(this, PatientMedicationsActivity.class)));
 
         View rehabBtn = findViewById(R.id.rehabBtn);
-        if (rehabBtn != null) rehabBtn.setOnClickListener(v -> startActivity(new Intent(this, PatientRehabilitationActivity.class)));
+        if (rehabBtn != null)
+            rehabBtn.setOnClickListener(v ->
+                    startActivity(new Intent(this, PatientRehabilitationActivity.class)));
     }
 
     private void showChatDialog() {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_chat, null);
 
@@ -260,7 +265,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
         closeBtn.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
 
-        if (chatMessages.size() > 0) chatRecyclerView.scrollToPosition(chatMessages.size() - 1);
+        if (chatMessages.size() > 0)
+            chatRecyclerView.scrollToPosition(chatMessages.size() - 1);
     }
 
     private void addChatMessage(String message, boolean fromUser) {
@@ -273,7 +279,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // ✅ Fixed: Removed argument
                     sessionManager.logout();
                     NavigationManager.goToLogin(this);
                     finish();
@@ -283,19 +288,23 @@ public class PatientDashboardActivity extends AppCompatActivity {
     }
 
     private void setupNavigationDrawer() {
+
         View headerView = navigationView.getHeaderView(0);
         TextView navHeaderName = headerView.findViewById(R.id.navHeaderPatientName);
         TextView navHeaderEmail = headerView.findViewById(R.id.navHeaderPatientEmail);
 
-        // Fixed: Added getters in SessionManager to support this
         String userName = sessionManager.getUserName();
         String userEmail = sessionManager.getUserEmail();
 
-        if (navHeaderName != null && userName != null) navHeaderName.setText(userName);
-        if (navHeaderEmail != null && userEmail != null) navHeaderEmail.setText(userEmail);
+        if (navHeaderName != null && userName != null)
+            navHeaderName.setText(userName);
+
+        if (navHeaderEmail != null && userEmail != null)
+            navHeaderEmail.setText(userEmail);
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
+
             if (id == R.id.nav_dashboard) {
                 drawerLayout.closeDrawer(GravityCompat.START);
             } else if (id == R.id.nav_medications) {
@@ -318,6 +327,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
             } else if (id == R.id.nav_logout) {
                 logout();
             }
+
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });

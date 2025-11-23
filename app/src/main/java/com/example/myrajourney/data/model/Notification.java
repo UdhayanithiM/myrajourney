@@ -3,34 +3,50 @@ package com.example.myrajourney.data.model;
 import com.google.gson.annotations.SerializedName;
 
 public class Notification {
+
     @SerializedName("id")
     private String id;
 
     @SerializedName("title")
     private String title;
 
-    @SerializedName("message")
-    private String message;
+    // Backend field is `body`, not `message`
+    @SerializedName("body")
+    private String body;
 
-    @SerializedName("is_read")
-    private boolean isRead;
+    // Backend sends `read_at`: NULL = unread → convert to boolean
+    @SerializedName("read_at")
+    private String readAt;
 
     @SerializedName("created_at")
     private String createdAt;
 
-    // Getters
-    public String getId() { return id; }
-    public String getTitle() { return title; }
+    // ----------- GETTERS ----------- //
 
-    // The adapter calls getBody(), but the field is message.
-    // Returning message here fixes the symbol error.
-    public String getBody() { return message; }
-    public String getMessage() { return message; }
+    public String getId() {
+        return id;
+    }
 
-    public String getCreatedAt() { return createdAt; }
+    public String getTitle() {
+        return title;
+    }
 
-    public boolean isRead() { return isRead; }
+    // Adapter uses getBody()
+    public String getBody() {
+        return body;
+    }
 
-    // Helper for UI logic
-    public boolean isUnread() { return !isRead; }
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    // TRUE = notification already read
+    public boolean isRead() {
+        return readAt != null;
+    }
+
+    // TRUE = unread
+    public boolean isUnread() {
+        return readAt == null;
+    }
 }

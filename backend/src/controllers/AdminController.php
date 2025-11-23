@@ -20,9 +20,11 @@ class AdminController
     {
        $auth = $_SERVER['auth'] ?? [];
        $role = $auth['role'] ?? '';
+       $creatorId = (int)($auth['uid'] ?? 0);
 
-       if ($role !== 'ADMIN') {
-          Response::json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Only admins can create users']], 403);
+       // ✅ CHANGE 1: Allow ADMIN and DOCTOR roles
+       if ($role !== 'ADMIN' && $role !== 'DOCTOR') {
+          Response::json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Access denied']], 403);
           return;
        }
 
@@ -33,6 +35,12 @@ class AdminController
        $userRole = in_array($body['role'] ?? 'PATIENT', ['PATIENT','DOCTOR']) ? $body['role'] : 'PATIENT';
        $name = $body['name'] ?? null;
        $phone = $body['phone'] ?? $body['mobile'] ?? null;
+
+       // ✅ CHANGE 2: Doctors can ONLY create Patients
+       if ($role === 'DOCTOR' && $userRole !== 'PATIENT') {
+           Response::json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Doctors can only register new patients.']], 403);
+           return;
+       }
 
        if (!$email || strlen($password) < 6) {
           Response::json(['success'=>false,'error'=>['code'=>'VALIDATION','message'=>'Invalid email or password (min 6 chars)']], 422);
@@ -57,12 +65,18 @@ class AdminController
            ]);
 
            if ($userRole === 'PATIENT') {
-              $assignedDoctorId = isset($body['assigned_doctor_id']) ? (int)$body['assigned_doctor_id'] : null;
+              // ✅ CHANGE 3: Auto-assign to the creating Doctor
+              if ($role === 'DOCTOR') {
+                  $assignedDoctorId = $creatorId;
+              } else {
+                  // Admins can optionally assign a doctor ID via the request
+                  $assignedDoctorId = isset($body['assigned_doctor_id']) ? (int)$body['assigned_doctor_id'] : null;
+              }
+
               $address = $body['address'] ?? null;
               $age = $body['age'] ?? null;
               $gender = $body['gender'] ?? null;
 
-              // Insert with age and gender
               $stmt = $db->prepare('INSERT INTO patients (id, assigned_doctor_id, address, age, gender, created_at, updated_at) VALUES (:id, :doctor_id, :address, :age, :gender, NOW(), NOW())');
               $stmt->execute([
                   ':id' => $uid,
@@ -114,7 +128,6 @@ class AdminController
        }
 
        $db = DB::conn();
-       // Safe query now that columns exist (after you run the script)
        $stmt = $db->prepare("
            SELECT
                u.id, u.name, u.email, u.role, u.phone,

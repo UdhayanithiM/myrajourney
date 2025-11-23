@@ -11,6 +11,7 @@ public class SessionManager {
     private static final String KEY_NAME = "user_name";
     private static final String KEY_EMAIL = "user_email";
     private static final String KEY_ROLE = "user_role";
+    private static final String KEY_USER_ID = "user_id";   // ⭐ ADDED
 
     private final SharedPreferences prefs;
     private final Context appContext;
@@ -30,6 +31,17 @@ public class SessionManager {
     }
 
     // --- SESSION MANAGEMENT ---
+    // ⭐ UPDATED: Now stores user_id too
+    public void createSession(String name, String email, String role, String userId) {
+        prefs.edit()
+                .putString(KEY_NAME, name)
+                .putString(KEY_EMAIL, email)
+                .putString(KEY_ROLE, role)
+                .putString(KEY_USER_ID, userId)   // ⭐ ADDED
+                .apply();
+    }
+
+    // Backward compatibility for old calls without userId
     public void createSession(String name, String email, String role) {
         prefs.edit()
                 .putString(KEY_NAME, name)
@@ -43,7 +55,6 @@ public class SessionManager {
         return TokenManager.getInstance(appContext).getToken() != null;
     }
 
-    // Helper for legacy calls check
     public boolean isLoggedIn() {
         return isSessionValid();
     }
@@ -61,8 +72,12 @@ public class SessionManager {
         return prefs.getString(KEY_EMAIL, "");
     }
 
+    // ⭐ ADDED: Get logged-in user ID (critical for doctor/patient flows)
+    public String getUserId() {
+        return prefs.getString(KEY_USER_ID, null);
+    }
+
     // --- LOGOUT ---
-    // ✅ Corrected: No parameters needed. Clears session generically.
     public void logout() {
         boolean onboard = isOnboardingCompleted();
 

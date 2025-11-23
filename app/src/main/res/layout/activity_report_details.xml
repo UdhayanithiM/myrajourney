@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/android:windowBackground">
+    android:background="?android:windowBackground"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -11,13 +12,12 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header -->
+        <!-- HEADER -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="20dp">
 
             <ImageView
                 android:id="@+id/back_button"
@@ -26,25 +26,24 @@
                 android:src="@drawable/ic_back"
                 android:contentDescription="Back"
                 android:background="@drawable/circle_background"
-                android:padding="8dp" />
+                android:padding="10dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="16dp"
                 android:text="Report Details"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"/>
+                android:textSize="22sp"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Patient Info Card -->
+        <!-- PATIENT INFO CARD -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="?attr/colorSurface">
 
@@ -52,31 +51,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:id="@+id/patient_name_detail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Patient Name"
-                    android:textStyle="bold"
                     android:textSize="18sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface" />
 
                 <TextView
                     android:id="@+id/report_type_detail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
                     android:text="Report Type"
-                    android:layout_marginTop="8dp"
                     android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:textColor="?attr/colorOnSurface" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="10dp">
 
                     <TextView
                         android:id="@+id/report_date_detail"
@@ -85,27 +84,32 @@
                         android:layout_weight="1"
                         android:text="Date"
                         android:textSize="14sp"
-                        android:textColor="?attr/colorOnSurface"/>
+                        android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:id="@+id/report_status_detail"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Status"
-                        android:textStyle="bold"
                         android:textSize="14sp"
-                        android:padding="8dp"
-                        android:background="@drawable/circle_background"/>
+                        android:textStyle="bold"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:background="@drawable/status_chip"
+                        android:textColor="@android:color/white" />
                 </LinearLayout>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Report Image Card -->
+        <!-- REPORT IMAGE -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="?attr/colorSurface">
 
@@ -118,45 +122,46 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Report Image"
-                    android:textStyle="bold"
+                    android:text="Report File"
                     android:textSize="16sp"
+                    android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="12dp" />
 
                 <ImageView
                     android:id="@+id/report_image"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
-                    android:scaleType="centerCrop"
-                    android:background="#F0F0F0"
-                    android:contentDescription="Report Image"/>
+                    android:layout_height="280dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Report File"
+                    android:background="#EEEEEE"
+                    android:padding="8dp"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Diagnosis Section -->
+        <!-- DIAGNOSIS SECTION -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="?attr/colorSurface">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add Diagnosis"
-                    android:textStyle="bold"
+                    android:text="Diagnosis"
                     android:textSize="16sp"
+                    android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="12dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -167,94 +172,91 @@
                     <Button
                         android:id="@+id/btn_normal"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
-                        android:text="Mark Normal"
-                        android:backgroundTint="#C8E6C9"/>
+                        android:text="Normal"
+                        android:backgroundTint="#B2DFDB" />
 
                     <Button
                         android:id="@+id/btn_abnormal"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_height="48dp"
                         android:layout_marginStart="8dp"
-                        android:text="Mark Abnormal"
-                        android:backgroundTint="#FFCDD2"/>
+                        android:layout_weight="1"
+                        android:text="Abnormal"
+                        android:backgroundTint="#FFCDD2" />
 
                     <Button
                         android:id="@+id/btn_review"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_height="48dp"
                         android:layout_marginStart="8dp"
-                        android:text="Needs Review"
-                        android:backgroundTint="#FFE0B2"/>
+                        android:layout_weight="1"
+                        android:text="Review"
+                        android:backgroundTint="#FFE0B2" />
                 </LinearLayout>
 
                 <EditText
                     android:id="@+id/diagnosis_input"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:hint="Enter diagnosis here..."
+                    android:layout_height="130dp"
                     android:gravity="top|start"
+                    android:hint="Enter diagnosis..."
                     android:padding="12dp"
                     android:background="@android:drawable/edit_text"
                     android:textColor="?attr/colorOnSurface"
-                    android:textColorHint="?attr/colorOnSurface"
-                    android:inputType="textMultiLine"
-                    android:maxLines="5"/>
+                    android:textColorHint="?attr/colorOnSurface" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Suggestions Section -->
+        <!-- SUGGESTIONS SECTION -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="?attr/colorSurface">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Add Suggestions"
-                    android:textStyle="bold"
+                    android:text="Suggestions"
                     android:textSize="16sp"
+                    android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
                 <EditText
                     android:id="@+id/suggestions_input"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:hint="Enter suggestions here..."
+                    android:layout_height="130dp"
                     android:gravity="top|start"
+                    android:hint="Enter suggestions..."
                     android:padding="12dp"
                     android:background="@android:drawable/edit_text"
                     android:textColor="?attr/colorOnSurface"
-                    android:textColorHint="?attr/colorOnSurface"
-                    android:inputType="textMultiLine"
-                    android:maxLines="5"/>
+                    android:textColorHint="?attr/colorOnSurface" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Save Button -->
+        <!-- SAVE BUTTON -->
         <Button
             android:id="@+id/save_diagnosis_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Diagnosis &amp; Suggestions"
-            android:textSize="16sp"
             android:textStyle="bold"
-            android:padding="16dp"
+            android:textSize="16sp"
+            android:padding="14dp"
             android:backgroundTint="?attr/colorPrimary"
-            android:textColor="?attr/colorOnPrimary"/>
+            android:textColor="?attr/colorOnPrimary" />
+
     </LinearLayout>
 </ScrollView>

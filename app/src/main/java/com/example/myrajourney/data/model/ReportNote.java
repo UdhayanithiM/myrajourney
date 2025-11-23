@@ -3,11 +3,15 @@ package com.example.myrajourney.data.model;
 import com.google.gson.annotations.SerializedName;
 
 public class ReportNote {
+
     @SerializedName("id")
     private String id;
 
-    @SerializedName("note")
-    private String note; // General note if needed
+    @SerializedName("report_id")
+    private String reportId;
+
+    @SerializedName("doctor_id")
+    private String doctorId;
 
     @SerializedName("diagnosis_text")
     private String diagnosisText;
@@ -20,13 +24,15 @@ public class ReportNote {
 
     // Getters
     public String getId() { return id; }
-    public String getNote() { return note; }
-    public String getCreatedAt() { return createdAt; }
-
+    public String getReportId() { return reportId; }
+    public String getDoctorId() { return doctorId; }
     public String getDiagnosisText() { return diagnosisText; }
     public String getSuggestionsText() { return suggestionsText; }
+    public String getCreatedAt() { return createdAt; }
 
     // Setters
+    public void setReportId(String reportId) { this.reportId = reportId; }
+    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
     public void setDiagnosisText(String diagnosisText) { this.diagnosisText = diagnosisText; }
     public void setSuggestionsText(String suggestionsText) { this.suggestionsText = suggestionsText; }
 }

@@ -4,80 +4,164 @@ declare(strict_types=1);
 namespace Src\Controllers;
 
 use Src\Models\AppointmentModel;
-use Src\Utils\Response;
 use Src\Models\NotificationModel;
+use Src\Utils\Response;
 
 class AppointmentController
 {
-	private AppointmentModel $appts;
-	public function __construct(){ $this->appts = new AppointmentModel(); }
+    private AppointmentModel $appts;
 
-	public function list(): void
-	{
-		$auth = $_SERVER['auth'] ?? [];
-		$uid = (int)($auth['uid'] ?? 0);
-		$role = $auth['role'] ?? '';
-		
-		$page = max(1, (int)($_GET['page'] ?? 1));
-		$limit = max(1, min(100, (int)($_GET['limit'] ?? 20)));
-		$filters = [];
-		
-		// Auto-filter based on user role
-		if ($role === 'PATIENT') {
-			$filters['patient_id'] = $uid;
-		} elseif ($role === 'DOCTOR') {
-			$filters['doctor_id'] = $uid;
-		} else {
-			// Admin or explicit filters from query params
-			$filters = [
-				'patient_id' => $_GET['patient_id'] ?? null,
-				'doctor_id' => $_GET['doctor_id'] ?? null,
-			];
-		}
-		
-		$r = $this->appts->list($filters, $page, $limit);
-		Response::json(['success'=>true,'data'=>$r['items'],'meta'=>['total'=>$r['total'],'page'=>$page,'limit'=>$limit]]);
-	}
+    public function __construct() {
+        $this->appts = new AppointmentModel();
+    }
 
-	public function create(): void
-	{
-		$auth = $_SERVER['auth'] ?? [];
-		$uid = (int)($auth['uid'] ?? 0);
-		$role = $auth['role'] ?? '';
-		
-		$body = json_decode(file_get_contents('php://input'), true) ?? [];
-		
-		// Auto-set patient_id for PATIENT role
-		if ($role === 'PATIENT') {
-			$body['patient_id'] = $uid;
-		}
-		
-		$required = ['patient_id','doctor_id','title','start_time','end_time'];
-		foreach ($required as $k) { if (empty($body[$k])) { Response::json(['success'=>false,'error'=>['code'=>'VALIDATION','message'=>"Missing $k"]],422); return; } }
-		$id = $this->appts->create($body);
-		$item = $this->appts->find($id);
-		// Notify the other party about the appointment
-		try {
-			$notif = new NotificationModel();
-			if ($role === 'DOCTOR') {
-				$notif->create((int)$body['patient_id'], 'APPOINTMENT', 'New appointment scheduled', $body['title'] ?? '');
-			} else {
-				$notif->create((int)$body['doctor_id'], 'APPOINTMENT', 'New appointment request', $body['title'] ?? '');
-			}
-		} catch (\Throwable $e) { /* ignore */ }
-		Response::json(['success'=>true,'data'=>$item], 201);
-	}
+    /**
+     * List Appointments
+     */
+    public function list(): void
+    {
+        $auth = $_SERVER['auth'] ?? [];
+        $uid  = (int)($auth['uid'] ?? 0);
+        $role = $auth['role'] ?? '';
 
-	public function get(int $id): void
-	{
-		$item = $this->appts->find($id);
-		if (!$item) { Response::json(['success'=>false,'error'=>['code'=>'NOT_FOUND','message'=>'Not found']],404); return; }
-		Response::json(['success'=>true,'data'=>$item]);
-	}
+        $page  = max(1, (int)($_GET['page'] ?? 1));
+        $limit = max(1, min(100, (int)($_GET['limit'] ?? 20)));
+
+        $filters = [];
+
+        if ($role === 'PATIENT') {
+            $filters['patient_id'] = $uid;
+        }
+        elseif ($role === 'DOCTOR') {
+            $filters['doctor_id'] = $uid;
+        }
+        else {
+            if (!empty($_GET['patient_id'])) {
+                $filters['patient_id'] = (int)$_GET['patient_id'];
+            }
+            if (!empty($_GET['doctor_id'])) {
+                $filters['doctor_id'] = (int)$_GET['doctor_id'];
+            }
+        }
+
+        $result = $this->appts->list($filters, $page, $limit);
+
+        // Format for mobile
+        foreach ($result['items'] as &$a) {
+            $start = strtotime($a['start_time']);
+            $end   = strtotime($a['end_time']);
+
+            $a['formatted_date']      = date('M d, Y', $start);
+            $a['formatted_time_slot'] = date('h:i A', $start) .
+                                        ($end ? ' - ' . date('h:i A', $end) : '');
+
+            $a['appointment_type'] = $a['appointment_type'] ?? $a['title'];
+            $a['reason']           = $a['reason'] ?? $a['description'];
+        }
+
+        Response::json([
+            'success' => true,
+            'data'    => $result['items'],
+            'meta'    => [
+                'total' => $result['total'],
+                'page'  => $page,
+                'limit' => $limit
+            ]
+        ]);
+    }
+
+    /**
+     * Create Appointment
+     */
+    public function create(): void
+    {
+        $auth = $_SERVER['auth'] ?? [];
+        $uid  = (int)($auth['uid'] ?? 0);
+        $role = $auth['role'] ?? '';
+
+        $body = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        // auto-set for patients
+        if ($role === 'PATIENT') {
+            $body['patient_id'] = $uid;
+        }
+
+        $required = ['patient_id','doctor_id','title','start_time','end_time'];
+        foreach ($required as $f) {
+            if (empty($body[$f])) {
+                Response::json([
+                    'success'=>false,
+                    'error'=>[
+                        'code'=>'VALIDATION',
+                        'message'=>"Missing $f"
+                    ]
+                ], 422);
+                return;
+            }
+        }
+
+        // convert Android input: "reason" → description
+        if (isset($body['reason']) && !isset($body['description'])) {
+            $body['description'] = $body['reason'];
+        }
+
+        $id   = $this->appts->create($body);
+        $item = $this->appts->find($id);
+
+        // Push notification
+        try {
+            $notif = new NotificationModel();
+            if ($role === 'DOCTOR') {
+                $notif->create((int)$body['patient_id'], 'APPOINTMENT',
+                    'New appointment scheduled', $body['title']);
+            } else {
+                $notif->create((int)$body['doctor_id'], 'APPOINTMENT',
+                    'New appointment request', $body['title']);
+            }
+        } catch (\Throwable $e) {}
+
+        // Format
+        if ($item) {
+            $start = strtotime($item['start_time']);
+            $end   = strtotime($item['end_time']);
+
+            $item['formatted_date']      = date('M d, Y', $start);
+            $item['formatted_time_slot'] = date('h:i A', $start) .
+                                           ($end ? ' - ' . date('h:i A', $end) : '');
+            $item['appointment_type']    = $item['title'];
+            $item['reason']              = $item['description'];
+        }
+
+        Response::json(['success'=>true,'data'=>$item], 201);
+    }
+
+    /**
+     * Get Appointment
+     */
+    public function get(int $id): void
+    {
+        $item = $this->appts->find($id);
+
+        if (!$item) {
+            Response::json([
+                'success'=>false,
+                'error'=>[
+                    'code'=>'NOT_FOUND',
+                    'message'=>'Not found'
+                ]
+            ], 404);
+            return;
+        }
+
+        $start = strtotime($item['start_time']);
+        $end   = strtotime($item['end_time']);
+
+        $item['formatted_date']      = date('M d, Y', $start);
+        $item['formatted_time_slot'] = date('h:i A', $start) .
+                                       ($end ? ' - ' . date('h:i A', $end) : '');
+        $item['appointment_type']    = $item['title'];
+        $item['reason']              = $item['description'];
+
+        Response::json(['success'=>true,'data'=>$item]);
+    }
 }
-
-
-
-
-
-

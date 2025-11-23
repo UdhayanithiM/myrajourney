@@ -1,0 +1,89 @@
+[2025-11-23 11:45:11] === Upload attempt ===
+[2025-11-23 11:45:11] Incoming file: Array
+(
+    [name] => Screenshot_20251122_184221.jpg
+    [full_path] => Screenshot_20251122_184221.jpg
+    [type] => image/jpeg
+    [tmp_name] => C:\xampp\tmp\php858F.tmp
+    [error] => 0
+    [size] => 189933
+)
+
+[2025-11-23 11:45:11] MIME OK: image/jpeg
+[2025-11-23 11:45:11] File extension: jpg
+[2025-11-23 11:45:11] Temp file: C:\xampp\tmp\php858F.tmp
+[2025-11-23 11:45:11] Destination: C:\Users\udhay\Music\myrajourney\backend\src\utils/../../storage/uploads/reports/2025/11/009d9d822cc33b4c.jpg
+[2025-11-23 11:45:11] File moved SUCCESSFULLY!
+[2025-11-23 11:45:11] Public URL: /uploads/reports/2025/11/009d9d822cc33b4c.jpg
+[2025-11-23 11:45:14] === Upload attempt ===
+[2025-11-23 11:45:14] Incoming file: Array
+(
+    [name] => Screenshot_20251122_184221.jpg
+    [full_path] => Screenshot_20251122_184221.jpg
+    [type] => image/jpeg
+    [tmp_name] => C:\xampp\tmp\php9119.tmp
+    [error] => 0
+    [size] => 189933
+)
+
+[2025-11-23 11:45:14] MIME OK: image/jpeg
+[2025-11-23 11:45:14] File extension: jpg
+[2025-11-23 11:45:14] Temp file: C:\xampp\tmp\php9119.tmp
+[2025-11-23 11:45:14] Destination: C:\Users\udhay\Music\myrajourney\backend\src\utils/../../storage/uploads/reports/2025/11/68cc4fa9b592951e.jpg
+[2025-11-23 11:45:14] File moved SUCCESSFULLY!
+[2025-11-23 11:45:14] Public URL: /uploads/reports/2025/11/68cc4fa9b592951e.jpg
+[2025-11-23 11:50:55] === Upload attempt ===
+[2025-11-23 11:50:55] Incoming file: Array
+(
+    [name] => sports fees circular.pdf
+    [full_path] => sports fees circular.pdf
+    [type] => application/pdf
+    [tmp_name] => C:\xampp\tmp\phpC3E7.tmp
+    [error] => 0
+    [size] => 255233
+)
+
+[2025-11-23 11:50:55] MIME OK: application/pdf
+[2025-11-23 11:50:55] File extension: pdf
+[2025-11-23 11:50:55] Temp file: C:\xampp\tmp\phpC3E7.tmp
+[2025-11-23 11:50:55] Destination: C:\Users\udhay\Music\myrajourney\backend\src\utils/../../storage/uploads/reports/2025/11/5c2ab4f56d5c18dd.pdf
+[2025-11-23 11:50:55] File moved SUCCESSFULLY!
+[2025-11-23 11:50:55] Public URL: /uploads/reports/2025/11/5c2ab4f56d5c18dd.pdf
+[2025-11-23 11:52:49] === Upload attempt ===
+[2025-11-23 11:52:49] Incoming file: Array
+(
+    [name] => Screenshot_20251123_132723.jpg
+    [full_path] => Screenshot_20251123_132723.jpg
+    [type] => image/jpeg
+    [tmp_name] => C:\xampp\tmp\php81E4.tmp
+    [error] => 0
+    [size] => 68201
+)
+
+[2025-11-23 11:52:49] MIME OK: image/jpeg
+[2025-11-23 11:52:49] File extension: jpg
+[2025-11-23 11:52:49] Temp file: C:\xampp\tmp\php81E4.tmp
+[2025-11-23 11:52:49] Destination: C:\Users\udhay\Music\myrajourney\backend\src\utils/../../storage/uploads/reports/2025/11/6335e1f9d84af9e3.jpg
+[2025-11-23 11:52:49] File moved SUCCESSFULLY!
+[2025-11-23 11:52:49] Public URL: /uploads/reports/2025/11/6335e1f9d84af9e3.jpg
+[2025-11-23 12:41:00] === Upload attempt ===
+[2025-11-23 12:41:00] Incoming file: Array
+(
+    [name] => Screenshot_20251123_165658.jpg
+    [full_path] => Screenshot_20251123_165658.jpg
+    [type] => image/jpeg
+    [tmp_name] => C:\xampp\tmp\php9E2F.tmp
+    [error] => 0
+    [size] => 151889
+)
+
+[2025-11-23 12:41:00] MIME OK: image/jpeg
+[2025-11-23 12:41:00] File extension: jpg
+[2025-11-23 12:41:00] Temp file: C:\xampp\tmp\php9E2F.tmp
+[2025-11-23 12:41:00] Destination: C:\Users\udhay\Music\myrajourney\backend\src\utils/../../storage/uploads/reports/2025/11/e81231961a9ada89.jpg
+[2025-11-23 12:41:00] File moved SUCCESSFULLY!
+[2025-11-23 12:41:00] Public URL: /uploads/reports/2025/11/e81231961a9ada89.jpg
+[2025-11-23 13:04:52] === Upload attempt ===
+[2025-11-23 13:04:52] Created directory: C:\Users\udhay\Music\myrajourney\backend\src\utils/../../public/uploads/reports/2025/11
+[2025-11-23 13:04:52] Saving to C:\Users\udhay\Music\myrajourney\backend\src\utils/../../public/uploads/reports/2025/11/7a8aa8b17264fdac.pdf
+[2025-11-23 13:04:52] Upload success!

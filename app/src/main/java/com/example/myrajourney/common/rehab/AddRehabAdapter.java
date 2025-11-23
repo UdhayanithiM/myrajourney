@@ -12,22 +12,22 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.data.model.Rehab;
-// ---------------------
 
 import java.util.List;
 
 public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddRehabViewHolder> {
 
     private Context context;
-    private List<Rehab> rehabList;
 
-    public AddRehabAdapter(Context context, List<Rehab> rehabList) {
+    private List<Rehab> masterList;     // ALL items
+    private List<Rehab> filteredList;   // FILTERED items (shown on screen)
+
+    public AddRehabAdapter(Context context, List<Rehab> masterList, List<Rehab> filteredList) {
         this.context = context;
-        this.rehabList = rehabList;
+        this.masterList = masterList;
+        this.filteredList = filteredList;
     }
 
     @NonNull
@@ -39,7 +39,8 @@ public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddReh
 
     @Override
     public void onBindViewHolder(@NonNull AddRehabViewHolder holder, int position) {
-        Rehab rehab = rehabList.get(position);
+
+        Rehab rehab = filteredList.get(position);
 
         holder.name.setText(rehab.getName());
         holder.description.setText(rehab.getDescription());
@@ -52,10 +53,13 @@ public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddReh
                     .placeholder(R.drawable.ic_rehab_placeholder)
                     .error(R.drawable.ic_error_placeholder)
                     .into(holder.thumbnail);
+        } else {
+            holder.thumbnail.setImageResource(R.drawable.ic_rehab_placeholder);
         }
 
         holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(rehab.isSelected());
+
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             rehab.setSelected(isChecked);
         });
@@ -63,21 +67,18 @@ public class AddRehabAdapter extends RecyclerView.Adapter<AddRehabAdapter.AddReh
 
     @Override
     public int getItemCount() {
-        return rehabList.size();
-    }
-
-    public void filterList(List<Rehab> filteredList) {
-        this.rehabList = filteredList;
-        notifyDataSetChanged();
+        return filteredList.size();
     }
 
     static class AddRehabViewHolder extends RecyclerView.ViewHolder {
+
         TextView name, description, reps, frequency;
         ImageView thumbnail;
         CheckBox checkBox;
 
         public AddRehabViewHolder(@NonNull View itemView) {
             super(itemView);
+
             name = itemView.findViewById(R.id.rehab_name);
             description = itemView.findViewById(R.id.rehab_description);
             reps = itemView.findViewById(R.id.rehab_reps);

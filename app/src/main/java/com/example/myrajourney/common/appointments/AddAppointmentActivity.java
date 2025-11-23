@@ -1,14 +1,26 @@
 package com.example.myrajourney.common.appointments;
 
 import android.app.DatePickerDialog;
-import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.myrajourney.R;
+import com.example.myrajourney.core.network.ApiClient;
+import com.example.myrajourney.core.network.ApiService;
+import com.example.myrajourney.core.session.TokenManager;
+import com.example.myrajourney.data.model.ApiResponse;
+import com.example.myrajourney.data.model.Appointment;
+import com.example.myrajourney.data.model.AppointmentRequest;
+import com.example.myrajourney.data.model.User;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,249 +30,250 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-// --- ADDED IMPORTS ---
-import com.example.myrajourney.R;
-import com.example.myrajourney.core.network.ApiClient;
-import com.example.myrajourney.core.network.ApiService;
-import com.example.myrajourney.core.session.TokenManager;
-import com.example.myrajourney.data.model.ApiResponse;
-import com.example.myrajourney.data.model.Appointment;
-import com.example.myrajourney.data.model.AppointmentRequest;
-import com.example.myrajourney.data.model.User;
-import com.example.myrajourney.patient.appointments.PatientAppointmentsActivity;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-// ---------------------
 
 public class AddAppointmentActivity extends AppCompatActivity {
 
-    EditText etPatientName, etDoctorName, etReason;
-    Button btnPickDate, btnAddAppointment;
-    Spinner spinnerTimeSlot;
-    String selectedDate = "";
-    List<String> availableTimeSlots;
+    private Spinner spinnerPatient, spinnerDoctor, spinnerTimeSlot;
+    private Button btnPickDate, btnAddAppointment;
+    private TextView tvSelectedDate;
+    private String selectedDate = "";
 
-    // static List<Appointment> allAppointments = new ArrayList<>(); // Removed: Not needed if using backend API
+    // Backing data lists (keep models to get IDs)
+    private List<User> patients = new ArrayList<>();
+    private List<User> doctors = new ArrayList<>();
+
+    private final List<String> defaultTimeSlots = Arrays.asList(
+            "10:00 AM - 10:30 AM",
+            "10:30 AM - 11:00 AM",
+            "11:00 AM - 11:30 AM",
+            "11:30 AM - 12:00 PM",
+            "02:00 PM - 02:30 PM",
+            "02:30 PM - 03:00 PM"
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_appointment);
 
-        etPatientName = findViewById(R.id.et_patient_name);
-        etDoctorName = findViewById(R.id.et_doctor_name);
-        etReason = findViewById(R.id.et_reason);
+        spinnerPatient = findViewById(R.id.spinner_patient);
+        spinnerDoctor = findViewById(R.id.spinner_doctor);
+        spinnerTimeSlot = findViewById(R.id.spinner_timeslot);
         btnPickDate = findViewById(R.id.btn_pick_date);
         btnAddAppointment = findViewById(R.id.btn_add_appointment);
-        spinnerTimeSlot = findViewById(R.id.spinner_timeslot);
+        tvSelectedDate = findViewById(R.id.tv_selected_date);
 
-        // Example time slots
-        availableTimeSlots = Arrays.asList(
-                "10:00 AM - 10:30 AM",
-                "10:30 AM - 11:00 AM",
-                "11:00 AM - 11:30 AM",
-                "11:30 AM - 12:00 PM",
-                "02:00 PM - 02:30 PM",
-                "02:30 PM - 03:00 PM"
-        );
+        // load timeslots into spinner
+        ArrayAdapter<String> tsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, defaultTimeSlots);
+        tsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTimeSlot.setAdapter(tsAdapter);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, availableTimeSlots);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTimeSlot.setAdapter(adapter);
+        // Date picker
+        btnPickDate.setOnClickListener(v -> showDatePicker());
 
-        // Pick date
-        btnPickDate.setOnClickListener(v -> {
-            final Calendar c = Calendar.getInstance();
-            int mYear = c.get(Calendar.YEAR);
-            int mMonth = c.get(Calendar.MONTH);
-            int mDay = c.get(Calendar.DAY_OF_MONTH);
-
-            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                    (view, year, monthOfYear, dayOfMonth) -> {
-                        Calendar selected = Calendar.getInstance();
-                        selected.set(year, monthOfYear, dayOfMonth);
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
-                        selectedDate = sdf.format(selected.getTime());
-                        btnPickDate.setText(selectedDate);
-                    }, mYear, mMonth, mDay);
-            // Optional: Disable past dates
-            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-            datePickerDialog.show();
-        });
+        // Load doctors and patients from backend
+        loadDoctors();
+        loadPatients();
 
         btnAddAppointment.setOnClickListener(v -> {
-            String patientName = etPatientName.getText().toString().trim();
-            String doctorName = etDoctorName.getText().toString().trim();
-            String reason = etReason.getText().toString().trim();
-            String timeSlot = spinnerTimeSlot.getSelectedItem().toString();
-
             if (selectedDate.isEmpty()) {
                 Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
                 return;
             }
+            String timeSlot = (String) spinnerTimeSlot.getSelectedItem();
+            if (timeSlot == null || timeSlot.trim().isEmpty()) {
+                Toast.makeText(this, "Select a time slot", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            // Save appointment to backend API
-            saveAppointmentToBackend(patientName, doctorName, reason, timeSlot);
+            // Determine selected IDs based on role and spinners
+            TokenManager tokenManager = TokenManager.getInstance(this);
+            String role = tokenManager.getUserRole();
+            String currentUserId = tokenManager.getUserId();
+
+            String patientId = null;
+            String doctorId = null;
+
+            // If current user is PATIENT -> patientId = currentUserId
+            if ("PATIENT".equalsIgnoreCase(role)) {
+                patientId = currentUserId;
+                // pick selected doctor from spinner
+                int docPos = spinnerDoctor.getSelectedItemPosition();
+                if (docPos >= 0 && docPos < doctors.size()) {
+                    doctorId = String.valueOf(doctors.get(docPos).getId());
+                }
+            } else if ("DOCTOR".equalsIgnoreCase(role)) {
+                doctorId = currentUserId;
+                // pick selected patient from spinner
+                int patPos = spinnerPatient.getSelectedItemPosition();
+                if (patPos >= 0 && patPos < patients.size()) {
+                    patientId = String.valueOf(patients.get(patPos).getId());
+                }
+            } else {
+                // ADMIN or other -> both must be chosen
+                int patPos = spinnerPatient.getSelectedItemPosition();
+                int docPos = spinnerDoctor.getSelectedItemPosition();
+                if (patPos >= 0 && patPos < patients.size()) {
+                    patientId = String.valueOf(patients.get(patPos).getId());
+                }
+                if (docPos >= 0 && docPos < doctors.size()) {
+                    doctorId = String.valueOf(doctors.get(docPos).getId());
+                }
+            }
+
+            if (patientId == null || doctorId == null) {
+                Toast.makeText(this, "Please select both doctor and patient", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // Compose start & end datetime strings
+            String[] times = timeSlot.split(" - ");
+            String startTime = parseDateTime(selectedDate, times[0].trim());
+            String endTime = times.length > 1 ? parseDateTime(selectedDate, times[1].trim()) : startTime;
+
+            // Title & reason simple defaults (could be from an input field)
+            String title = "Consultation";
+            String reason = "General Checkup";
+
+            // Build request
+            AppointmentRequest req = new AppointmentRequest(
+                    patientId,
+                    doctorId,
+                    title,
+                    reason,
+                    startTime,
+                    endTime
+            );
+
+            createAppointment(req);
         });
     }
 
-    private void saveAppointmentToBackend(String patientName, String doctorName, String reason, String timeSlot) {
-        TokenManager tokenManager = TokenManager.getInstance(this);
-        String currentUserId = tokenManager.getUserId();
-        String currentUserRole = tokenManager.getUserRole();
+    private void showDatePicker() {
+        final Calendar c = Calendar.getInstance();
+        int mYear = c.get(Calendar.YEAR);
+        int mMonth = c.get(Calendar.MONTH);
+        int mDay = c.get(Calendar.DAY_OF_MONTH);
 
-        if (currentUserId == null) {
-            Toast.makeText(this, "Please login again", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                (view, year, monthOfYear, dayOfMonth) -> {
+                    Calendar selected = Calendar.getInstance();
+                    selected.set(year, monthOfYear, dayOfMonth);
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    selectedDate = sdf.format(selected.getTime());
+                    tvSelectedDate.setText(selectedDate);
+                }, mYear, mMonth, mDay);
 
-        // Parse start and end time
-        String[] times = timeSlot.split(" - ");
-        String startTimeStr = times[0].trim();
-        String endTimeStr = times.length > 1 ? times[1].trim() : startTimeStr; // Fallback
+        // Disable past dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
 
-        String startTime = parseDateTime(selectedDate, startTimeStr);
-        String endTime = parseDateTime(selectedDate, endTimeStr);
+    private void loadDoctors() {
+        ApiService api = ApiClient.getApiService(this);
+        Call<ApiResponse<List<User>>> call = api.getDoctors();
+        call.enqueue(new Callback<ApiResponse<List<User>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<User>>> call, Response<ApiResponse<List<User>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    List<User> list = response.body().getData();
+                    if (list != null) {
+                        doctors.clear();
+                        doctors.addAll(list);
+                        List<String> names = new ArrayList<>();
+                        for (User u : doctors) names.add(u.getName() != null ? u.getName() : "Dr. " + u.getId());
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(AddAppointmentActivity.this,
+                                android.R.layout.simple_spinner_item, names);
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerDoctor.setAdapter(adapter);
+                    }
+                } else {
+                    // keep empty adapter
+                    spinnerDoctor.setAdapter(new ArrayAdapter<>(AddAppointmentActivity.this, android.R.layout.simple_spinner_item, new ArrayList<>()));
+                }
+            }
 
-        // Determine IDs based on role
-        String patientId = "PATIENT".equals(currentUserRole) ? currentUserId : null;
-        String doctorId = "DOCTOR".equals(currentUserRole) ? currentUserId : null;
+            @Override
+            public void onFailure(Call<ApiResponse<List<User>>> call, Throwable t) {
+                spinnerDoctor.setAdapter(new ArrayAdapter<>(AddAppointmentActivity.this, android.R.layout.simple_spinner_item, new ArrayList<>()));
+                Toast.makeText(AddAppointmentActivity.this, "Failed to load doctors", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-        // If ID is missing (e.g. Patient creating appt needs Doctor ID, or Admin creating for both)
-        if (patientId == null || doctorId == null) {
-            findUserIdsAndSave(patientName, doctorName, reason, startTime, endTime);
-            return;
-        }
+    private void loadPatients() {
+        ApiService api = ApiClient.getApiService(this);
+        Call<ApiResponse<List<User>>> call = api.getAllPatients();
+        call.enqueue(new Callback<ApiResponse<List<User>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<User>>> call, Response<ApiResponse<List<User>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    List<User> list = response.body().getData();
+                    if (list != null) {
+                        patients.clear();
+                        // Only keep ROLE == PATIENT
+                        for (User u : list) {
+                            if ("PATIENT".equalsIgnoreCase(u.getRole())) patients.add(u);
+                        }
+                        List<String> names = new ArrayList<>();
+                        for (User u : patients) names.add(u.getName() != null ? u.getName() : "Patient " + u.getId());
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(AddAppointmentActivity.this,
+                                android.R.layout.simple_spinner_item, names);
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerPatient.setAdapter(adapter);
+                    }
+                } else {
+                    spinnerPatient.setAdapter(new ArrayAdapter<>(AddAppointmentActivity.this, android.R.layout.simple_spinner_item, new ArrayList<>()));
+                }
+            }
 
-        // Create request
-        AppointmentRequest request = new AppointmentRequest(
-                patientId,
-                doctorId,
-                reason.isEmpty() ? "General Checkup" : reason, // Default title/type
-                reason,
-                startTime,
-                endTime
-        );
+            @Override
+            public void onFailure(Call<ApiResponse<List<User>>> call, Throwable t) {
+                spinnerPatient.setAdapter(new ArrayAdapter<>(AddAppointmentActivity.this, android.R.layout.simple_spinner_item, new ArrayList<>()));
+                Toast.makeText(AddAppointmentActivity.this, "Failed to load patients", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-        ApiService apiService = ApiClient.getApiService(this);
-        Call<ApiResponse<Appointment>> call = apiService.createAppointment(request);
-
+    private void createAppointment(AppointmentRequest req) {
+        ApiService api = ApiClient.getApiService(this);
+        Call<ApiResponse<Appointment>> call = api.createAppointment(req);
+        btnAddAppointment.setEnabled(false);
         call.enqueue(new Callback<ApiResponse<Appointment>>() {
             @Override
             public void onResponse(Call<ApiResponse<Appointment>> call, Response<ApiResponse<Appointment>> response) {
+                btnAddAppointment.setEnabled(true);
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     Toast.makeText(AddAppointmentActivity.this, "Appointment created successfully", Toast.LENGTH_SHORT).show();
-                    resetForm();
-                    // Navigate back or to list
                     finish();
                 } else {
-                    String errorMsg = "Failed to create appointment";
+                    String err = "Failed to create appointment";
                     if (response.body() != null && response.body().getError() != null) {
-                        errorMsg = response.body().getError().getMessage();
+                        err = response.body().getError().getMessage();
                     }
-                    Toast.makeText(AddAppointmentActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddAppointmentActivity.this, err, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<Appointment>> call, Throwable t) {
-                Toast.makeText(AddAppointmentActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void findUserIdsAndSave(String patientName, String doctorName, String reason, String startTime, String endTime) {
-        ApiService apiService = ApiClient.getApiService(this);
-        // Assuming getAllPatients actually returns all users or you have an endpoint for searching
-        // You might need a specific endpoint like getUsers() if getAllPatients only returns patients
-        Call<ApiResponse<List<User>>> call = apiService.getAllPatients();
-
-        call.enqueue(new Callback<ApiResponse<List<User>>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<List<User>>> call, Response<ApiResponse<List<User>>> response) {
-                String foundPatientId = null;
-                String foundDoctorId = null;
-
-                TokenManager tokenManager = TokenManager.getInstance(AddAppointmentActivity.this);
-                String currentUserId = tokenManager.getUserId();
-                String currentUserRole = tokenManager.getUserRole();
-
-                // Pre-fill known ID
-                if ("PATIENT".equals(currentUserRole)) foundPatientId = currentUserId;
-                if ("DOCTOR".equals(currentUserRole)) foundDoctorId = currentUserId;
-
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    List<User> users = response.body().getData();
-                    if (users != null) {
-                        for (User user : users) {
-                            // Match Patient Name if we don't have ID yet
-                            if (foundPatientId == null && user.getName() != null
-                                    && user.getName().equalsIgnoreCase(patientName)
-                                    && "PATIENT".equals(user.getRole())) {
-                                foundPatientId = String.valueOf(user.getId());
-                            }
-                            // Match Doctor Name if we don't have ID yet
-                            if (foundDoctorId == null && user.getName() != null
-                                    && user.getName().equalsIgnoreCase(doctorName)
-                                    && "DOCTOR".equals(user.getRole())) {
-                                foundDoctorId = String.valueOf(user.getId());
-                            }
-                        }
-                    }
-                }
-
-                if (foundPatientId == null || foundDoctorId == null) {
-                    Toast.makeText(AddAppointmentActivity.this,
-                            "Could not find matching user (Patient/Doctor). Check spelling.",
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                // Proceed to save
-                AppointmentRequest request = new AppointmentRequest(
-                        foundPatientId,
-                        foundDoctorId,
-                        reason.isEmpty() ? "General Checkup" : reason,
-                        reason,
-                        startTime,
-                        endTime
-                );
-
-                apiService.createAppointment(request).enqueue(new Callback<ApiResponse<Appointment>>() {
-                    @Override
-                    public void onResponse(Call<ApiResponse<Appointment>> call, Response<ApiResponse<Appointment>> response) {
-                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                            Toast.makeText(AddAppointmentActivity.this, "Appointment created successfully", Toast.LENGTH_SHORT).show();
-                            resetForm();
-                            finish();
-                        } else {
-                            Toast.makeText(AddAppointmentActivity.this, "Failed to create appointment", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ApiResponse<Appointment>> call, Throwable t) {
-                        Toast.makeText(AddAppointmentActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<List<User>>> call, Throwable t) {
-                Toast.makeText(AddAppointmentActivity.this, "Failed to find users. Please try again.", Toast.LENGTH_SHORT).show();
+                btnAddAppointment.setEnabled(true);
+                Toast.makeText(AddAppointmentActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 
     private String parseDateTime(String dateStr, String timeStr) {
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+            // dateStr: dd-MM-yyyy
+            // timeStr: h:mm a
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
             Date date = dateFormat.parse(dateStr);
 
-            SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.US);
+            SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
             Date time = timeFormat.parse(timeStr);
 
             Calendar cal = Calendar.getInstance();
@@ -274,17 +287,9 @@ public class AddAppointmentActivity extends AppCompatActivity {
             SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             return outputFormat.format(cal.getTime());
         } catch (Exception e) {
-            // Fallback to current time if parse fails
+            // fallback: now
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             return format.format(new Date());
         }
-    }
-
-    private void resetForm() {
-        if (etPatientName != null) etPatientName.setText("");
-        if (etDoctorName != null) etDoctorName.setText("");
-        if (etReason != null) etReason.setText("");
-        btnPickDate.setText("Pick Date");
-        selectedDate = "";
     }
 }

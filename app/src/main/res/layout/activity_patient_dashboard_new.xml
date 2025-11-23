@@ -1,564 +1,505 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/android:windowBackground"
+    android:background="@color/background_light"
     tools:openDrawer="start">
 
-<ScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/android:windowBackground"
-    android:scrollbars="none">
-
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="match_parent">
 
-        <!-- Modern Header -->
-        <LinearLayout
+        <!-- HEADER SECTION -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="32dp"
-            android:padding="16dp">
+            android:background="?attr/colorPrimary"
+            android:padding="16dp"
+            android:paddingBottom="24dp"
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/menu_icon"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:src="@drawable/ic_menu"
-                android:contentDescription="Menu"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@drawable/circle_background"
+                android:backgroundTint="#30FFFFFF"
                 android:padding="12dp"
-                android:elevation="4dp"
-                app:tint="?attr/colorOnPrimary" />
+                android:src="@drawable/ic_menu"
+                app:tint="@color/white"
+                android:contentDescription="@string/menu"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:orientation="vertical"
-                android:layout_marginStart="20dp">
+                app:layout_constraintBottom_toBottomOf="@+id/menu_icon"
+                app:layout_constraintEnd_toStartOf="@+id/logoutBtn"
+                app:layout_constraintStart_toEndOf="@+id/menu_icon"
+                app:layout_constraintTop_toTopOf="@+id/menu_icon">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Good Morning"
-                    android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8"/>
+                    android:text="Good Morning,"
+                    android:textColor="#E0E0E0"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/welcomeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Welcome Back!"
-                    android:textSize="24sp"
+                    android:text="Welcome Back"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:ellipsize="end"
+                    android:maxLines="1"/>
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/logoutBtn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="16dp"
-                android:src="@android:drawable/ic_menu_send"
-                android:contentDescription="Logout"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@drawable/circle_background"
-                android:padding="8dp"
-                app:tint="@color/white" />
-        </LinearLayout>
+                android:backgroundTint="#30FFFFFF"
+                android:padding="12dp"
+                android:src="@android:drawable/ic_menu_send"
+                app:tint="@color/white"
+                android:contentDescription="@string/logout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Health Status Card -->
-        <androidx.cardview.widget.CardView
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- SCROLLABLE CONTENT -->
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="?attr/colorPrimary">
+            android:layout_height="0dp"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:paddingBottom="80dp"
+            app:layout_constraintTop_toBottomOf="@id/header_container"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="16dp">
 
-                <LinearLayout
+                <!-- HEALTH OVERVIEW CARD -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🌟"
-                        android:textSize="28sp"/>
+                    android:layout_marginTop="-12dp"
+                    android:layout_marginBottom="24dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="12dp">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="20dp">
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Health Status"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnPrimary"/>
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:background="@drawable/circle_background"
+                            android:backgroundTint="#E8F5E9"
+                            android:gravity="center"
+                            android:text="🌟"
+                            android:textSize="24sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="Track your daily wellness journey"
-                            android:textSize="14sp"
-                            android:textColor="?attr/colorOnPrimary"
-                            android:alpha="0.9"/>
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Overall Health"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Excellent"
+                                android:textColor="#4CAF50"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_play_circle"
+                            app:tint="@color/text_secondary" />
                     </LinearLayout>
-                </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Overall Health: "
-                        android:textSize="16sp"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Good"
-                        android:textSize="16sp"
-                        android:textColor="#4CAF50"
-                        android:textStyle="bold"
-                        android:background="@drawable/rounded_background"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp"/>
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Quick Actions -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Quick Actions"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginBottom="20dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="32dp">
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/chatCard"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="#E3F2FD">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🤖"
-                        android:textSize="32sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="AI Assistant"
-                        android:textSize="14sp"
-                        android:textColor="#1976D2"
-                        android:textStyle="bold"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/healthStatsCard"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="#FFF3E0">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📊"
-                        android:textSize="32sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Health Stats"
-                        android:textSize="14sp"
-                        android:textColor="#F57C00"
-                        android:textStyle="bold"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-        </LinearLayout>
-
-        <!-- Health Metrics Grid -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Today's Health Metrics"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginBottom="20dp"/>
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="?attr/colorSurface">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <!-- First Row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="20dp">
-
-                    <!-- Heart Rate -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:background="@drawable/metric_background"
-                        android:layout_marginEnd="10dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="❤️"
-                            android:textSize="36sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Heart Rate"
-                            android:textSize="14sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:layout_marginTop="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="72"
-                            android:textSize="28sp"
-                            android:textStyle="bold"
-                            android:textColor="#E53E3E"
-                            android:layout_marginTop="4dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="BPM"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:alpha="0.7"/>
-                    </LinearLayout>
-
-                    <!-- Blood Pressure -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:background="@drawable/metric_background"
-                        android:layout_marginStart="10dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🩸"
-                            android:textSize="36sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Blood Pressure"
-                            android:textSize="14sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:layout_marginTop="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="120/80"
-                            android:textSize="28sp"
-                            android:textStyle="bold"
-                            android:textColor="#3182CE"
-                            android:layout_marginTop="4dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="mmHg"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:alpha="0.7"/>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- Second Row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- Temperature -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:background="@drawable/metric_background"
-                        android:layout_marginEnd="10dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🌡️"
-                            android:textSize="36sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Temperature"
-                            android:textSize="14sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:layout_marginTop="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="36.5"
-                            android:textSize="28sp"
-                            android:textStyle="bold"
-                            android:textColor="#38A169"
-                            android:layout_marginTop="4dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="°C"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:alpha="0.7"/>
-                    </LinearLayout>
-
-                    <!-- Pain Level -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:background="@drawable/metric_background"
-                        android:layout_marginStart="10dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="😊"
-                            android:textSize="36sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pain Level"
-                            android:textSize="14sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:layout_marginTop="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="3"
-                            android:textSize="28sp"
-                            android:textStyle="bold"
-                            android:textColor="#D69E2E"
-                            android:layout_marginTop="4dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="/10"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:alpha="0.7"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Daily Tasks -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Daily Health Check"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginBottom="20dp"/>
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            app:cardBackgroundColor="#F7FAFC">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
-
+                <!-- QUICK ACTIONS -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Have you completed your daily exercises and taken your medications?"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="24dp"
-                    android:textAlignment="center"/>
+                    android:layout_marginBottom="12dp"
+                    android:text="Quick Actions"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
+                    android:layout_marginBottom="24dp"
+                    android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/yesBtn"
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/chatCard"
                         android:layout_width="0dp"
-                        android:layout_height="56dp"
+                        android:layout_height="110dp"
                         android:layout_weight="1"
-                        android:text="✅ Yes, All Done!"
-                        android:layout_marginEnd="12dp"
-                        android:background="@drawable/rounded_button_success"
-                        android:textColor="@color/white"
-                        android:textAllCaps="false"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
+                        android:layout_marginEnd="8dp"
+                        app:cardBackgroundColor="#E3F2FD"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp">
 
-                    <Button
-                        android:id="@+id/noBtn"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🤖"
+                                android:textSize="32sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="AI Assistant"
+                                android:textColor="#1976D2"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/healthStatsCard"
                         android:layout_width="0dp"
-                        android:layout_height="56dp"
+                        android:layout_height="110dp"
                         android:layout_weight="1"
-                        android:text="❌ Not Yet"
-                        android:layout_marginStart="12dp"
-                        android:background="@drawable/rounded_button_warning"
-                        android:textColor="@color/white"
-                        android:textAllCaps="false"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
+                        android:layout_marginStart="8dp"
+                        app:cardBackgroundColor="#FFF3E0"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📊"
+                                android:textSize="32sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Health Stats"
+                                android:textColor="#F57C00"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
                 </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
 
-        <!-- Appointments -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Upcoming Appointments"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginBottom="20dp"/>
+                <!-- TODAY'S VITALS -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Today's Vitals"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="?attr/colorSurface">
+                <androidx.gridlayout.widget.GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    app:columnCount="2"
+                    app:rowCount="2">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                    <!-- HEART RATE -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_columnWeight="1"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/metric_background"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/circle_background"
+                            android:backgroundTint="#FFEBEE"
+                            android:gravity="center"
+                            android:text="❤️"
+                            android:textSize="20sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Heart Rate"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="72 BPM"
+                                android:textColor="#D32F2F"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- BLOOD PRESSURE -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_columnWeight="1"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/metric_background"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/circle_background"
+                            android:backgroundTint="#E3F2FD"
+                            android:gravity="center"
+                            android:text="🩸"
+                            android:textSize="20sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Blood Pressure"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="120/80"
+                                android:textColor="#1976D2"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- TEMPERATURE -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_columnWeight="1"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/metric_background"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/circle_background"
+                            android:backgroundTint="#E8F5E9"
+                            android:gravity="center"
+                            android:text="🌡️"
+                            android:textSize="20sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Temperature"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="36.5 °C"
+                                android:textColor="#388E3C"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- PAIN LEVEL -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_columnWeight="1"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/metric_background"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/circle_background"
+                            android:backgroundTint="#FFF3E0"
+                            android:gravity="center"
+                            android:text="😣"
+                            android:textSize="20sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pain Level"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="3 / 10"
+                                android:textColor="#F57C00"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </androidx.gridlayout.widget.GridLayout>
+
+                <!-- MEDICATION CARD -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    app:cardBackgroundColor="#FAFAFA"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:layout_gravity="center_horizontal"
+                            android:text="Have you taken your medications today?"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/yesBtn"
+                                android:layout_width="0dp"
+                                android:layout_height="50dp"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:backgroundTint="#4CAF50"
+                                android:text="Yes"
+                                android:textColor="@color/white"
+                                app:cornerRadius="25dp" />
+
+                            <Button
+                                android:id="@+id/noBtn"
+                                android:layout_width="0dp"
+                                android:layout_height="50dp"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:backgroundTint="#E57373"
+                                android:text="No"
+                                android:textColor="@color/white"
+                                app:cornerRadius="25dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- APPOINTMENTS -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Upcoming Appointments"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:id="@+id/consultationCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#F1F8E9"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp"
                     android:padding="16dp"
-                    android:background="#E8F5E8">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -578,42 +519,39 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Consultation"
-                            android:textSize="18sp"
+                            android:textColor="#33691E"
                             android:textStyle="bold"
-                            android:textColor="#2D5016"/>
+                            android:textSize="16sp"/>
 
                         <TextView
                             android:id="@+id/consultationDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Dec 15, 2024 - 10:30 AM"
-                            android:textSize="14sp"
-                            android:textColor="#2D5016"/>
+                            android:textColor="#558B2F"
+                            android:textSize="14sp"/>
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/consultationDetailsBtn"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="View Details"
-                        android:textSize="12sp"
-                        android:textColor="#4CAF50"
+                        android:text="Details"
+                        android:textColor="#33691E"
                         android:textStyle="bold"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="6dp"
-                        android:paddingBottom="6dp"
-                        android:background="@drawable/rounded_outline"
-                        android:id="@+id/consultationDetailsBtn"/>
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="8dp"/>
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/followupCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#FFF8E1"
                     android:gravity="center_vertical"
                     android:padding="16dp"
-                    android:background="#FFF3E0">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -633,95 +571,133 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Follow-up"
-                            android:textSize="18sp"
+                            android:textColor="#FF6F00"
                             android:textStyle="bold"
-                            android:textColor="#8D6E16"/>
+                            android:textSize="16sp"/>
 
                         <TextView
                             android:id="@+id/followupDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Dec 28, 2024 - 2:00 PM"
-                            android:textSize="14sp"
-                            android:textColor="#8D6E16"/>
+                            android:textColor="#FF8F00"
+                            android:textSize="14sp"/>
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/followupDetailsBtn"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="View Details"
-                        android:textSize="12sp"
-                        android:textColor="#FF9800"
+                        android:text="Details"
+                        android:textColor="#FF6F00"
                         android:textStyle="bold"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="6dp"
-                        android:paddingBottom="6dp"
-                        android:background="@drawable/rounded_outline"
-                        android:id="@+id/followupDetailsBtn"/>
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="8dp"/>
                 </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
 
-        <!-- Bottom Navigation -->
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- BOTTOM NAV -->
         <LinearLayout
+            android:id="@+id/bottomNavigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:elevation="16dp"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp"
-            android:background="?attr/colorSurface"
-            android:elevation="12dp"
-            android:padding="12dp">
+            android:paddingVertical="8dp"
+            android:paddingHorizontal="24dp"
+            android:gravity="center_vertical"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-            <ImageButton
-                android:id="@+id/symptomLogBtn"
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="#E3F2FD"
-                android:layout_marginEnd="8dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_symptom_report"
-                 app:tint="#1976D2" />
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <ImageButton
-                android:id="@+id/medicationsBtn"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:backgroundTint="#FFF3E0"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_pill"
-                app:tint="#F57C00" />
+                <ImageButton
+                    android:id="@+id/symptomLogBtn"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_symptom_report"
+                    app:tint="?attr/colorPrimary"
+                    android:contentDescription="Symptoms" />
 
-            <ImageButton
-                android:id="@+id/rehabBtn"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Symptoms"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorPrimary"/>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="#E8F5E8"
-                android:layout_marginStart="8dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_dumbbell"
-                app:tint="#388E3C" />
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/medicationsBtn"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_pill"
+                    app:tint="?attr/colorPrimary"
+                    android:contentDescription="Meds" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Meds"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorPrimary"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/rehabBtn"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_dumbbell"
+                    app:tint="?attr/colorPrimary"
+                    android:contentDescription="Rehab" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rehab"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorPrimary"/>
+            </LinearLayout>
+
         </LinearLayout>
 
-    </LinearLayout>
-</ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-<!-- Navigation Drawer -->
-<com.google.android.material.navigation.NavigationView
-    android:id="@+id/nav_view"
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent"
-    android:layout_gravity="start"
-    android:fitsSystemWindows="true"
-    app:menu="@menu/patient_drawer_menu"
-    app:headerLayout="@layout/nav_header_patient"
-    android:background="?attr/colorSurface"
-    app:itemTextColor="?attr/colorOnSurface"
-    app:itemIconTint="?attr/colorPrimary"/>
+    <!-- DRAWER MENU -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:menu="@menu/patient_drawer_menu"
+        app:headerLayout="@layout/nav_header_patient"
+        android:background="@color/white"
+        app:itemTextColor="@color/text_primary"
+        app:itemIconTint="?attr/colorPrimary"/>
 
 </androidx.drawerlayout.widget.DrawerLayout>

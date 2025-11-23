@@ -105,7 +105,10 @@ public class AllPatientsActivity extends AppCompatActivity {
         emptyView.setVisibility(View.GONE);
 
         ApiService apiService = ApiClient.getApiService(this);
-        Call<ApiResponse<List<User>>> call = apiService.getAllUsers(); // Using the generic user fetch
+
+        // ✅ CORRECTED: Use getAllPatients() to fetch assigned patients
+        // This maps to GET /api/v1/patients which is allowed for Doctors
+        Call<ApiResponse<List<User>>> call = apiService.getAllPatients();
 
         call.enqueue(new Callback<ApiResponse<List<User>>>() {
             @Override
@@ -116,18 +119,19 @@ public class AllPatientsActivity extends AppCompatActivity {
                     List<User> users = response.body().getData();
                     patientList.clear();
 
-                    for (User user : users) {
-                        if ("PATIENT".equalsIgnoreCase(user.getRole())) {
-                            // ✅ CRITICAL FIX: Mapping User.age -> Patient.age
-                            String age = (user.getAge() != null && !user.getAge().isEmpty()) ? user.getAge() : "N/A";
+                    if (users != null) {
+                        for (User user : users) {
+                            if ("PATIENT".equalsIgnoreCase(user.getRole())) {
+                                String age = (user.getAge() != null && !user.getAge().isEmpty()) ? user.getAge() : "N/A";
 
-                            Patient p = new Patient(
-                                    user.getId(),
-                                    user.getName(),
-                                    user.getEmail(),
-                                    age // Passing the age here!
-                            );
-                            patientList.add(p);
+                                Patient p = new Patient(
+                                        user.getId(),
+                                        user.getName(),
+                                        user.getEmail(),
+                                        age
+                                );
+                                patientList.add(p);
+                            }
                         }
                     }
 
@@ -136,13 +140,17 @@ public class AllPatientsActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                     updateEmptyView();
                 } else {
-                    Toast.makeText(AllPatientsActivity.this, "Failed to load data.", Toast.LENGTH_SHORT).show();
+                    String errorMsg = "Failed to load patients";
+                    if (response.code() == 403) errorMsg = "Access Denied: Unauthorized";
+                    Toast.makeText(AllPatientsActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                    updateEmptyView();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<ApiResponse<List<User>>> call, @NonNull Throwable t) {
                 progressBar.setVisibility(View.GONE);
+                Toast.makeText(AllPatientsActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 updateEmptyView();
             }
         });

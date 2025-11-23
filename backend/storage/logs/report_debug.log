@@ -1,0 +1,212 @@
+[2025-11-23 11:42:28] === LIST REPORTS ===
+[2025-11-23 11:42:28] Role: DOCTOR, UID: 7, Page: 1, Limit: 20
+[2025-11-23 11:42:28] Branch: DOCTOR
+[2025-11-23 11:42:28] Doctor has 1 patients
+[2025-11-23 11:42:28] Total reports: 0
+[2025-11-23 11:42:28] Executing report query...
+[2025-11-23 11:44:38] === LIST REPORTS START ===
+[2025-11-23 11:44:38] Role = DOCTOR, UID = 7
+[2025-11-23 11:44:38] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:44:38] Branch: DOCTOR
+[2025-11-23 11:44:38] Doctor patient IDs: [14]
+[2025-11-23 11:44:38] Placeholders count = 1
+[2025-11-23 11:44:38] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:44:38] Total reports found = 0
+[2025-11-23 11:44:38] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:44:38] Binding limit=20 offset=0
+[2025-11-23 11:44:38] Returned 0 report rows.
+[2025-11-23 11:45:11] === CREATE REPORT START ===
+[2025-11-23 11:45:11] Incoming patientId=7 title='doctor'
+[2025-11-23 11:45:11] Calling Upload::saveReport...
+[2025-11-23 11:45:11] File saved URL=/uploads/reports/2025/11/009d9d822cc33b4c.jpg
+[2025-11-23 11:45:11] UPLOAD FAILED: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'status' in 'field list'
+[2025-11-23 11:45:14] === CREATE REPORT START ===
+[2025-11-23 11:45:14] Incoming patientId=7 title='doctor'
+[2025-11-23 11:45:14] Calling Upload::saveReport...
+[2025-11-23 11:45:14] File saved URL=/uploads/reports/2025/11/68cc4fa9b592951e.jpg
+[2025-11-23 11:45:14] UPLOAD FAILED: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'status' in 'field list'
+[2025-11-23 11:50:30] === LIST REPORTS START ===
+[2025-11-23 11:50:30] Role = DOCTOR, UID = 7
+[2025-11-23 11:50:30] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:50:30] Branch: DOCTOR
+[2025-11-23 11:50:30] Doctor patient IDs: [14]
+[2025-11-23 11:50:30] Placeholders count = 1
+[2025-11-23 11:50:30] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:50:30] Total reports found = 0
+[2025-11-23 11:50:30] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:50:30] Binding limit=20 offset=0
+[2025-11-23 11:50:30] Returned 0 report rows.
+[2025-11-23 11:50:55] === CREATE REPORT START ===
+[2025-11-23 11:50:55] Incoming patientId=7 title='fever'
+[2025-11-23 11:50:55] Calling Upload::saveReport...
+[2025-11-23 11:50:55] File saved URL=/uploads/reports/2025/11/5c2ab4f56d5c18dd.pdf
+[2025-11-23 11:50:55] Inserted report ID = 1
+[2025-11-23 11:50:55] Notifying doctors: []
+[2025-11-23 11:51:35] === LIST REPORTS START ===
+[2025-11-23 11:51:35] Role = DOCTOR, UID = 7
+[2025-11-23 11:51:35] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:51:35] Branch: DOCTOR
+[2025-11-23 11:51:35] Doctor patient IDs: [14]
+[2025-11-23 11:51:35] Placeholders count = 1
+[2025-11-23 11:51:35] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:51:35] Total reports found = 0
+[2025-11-23 11:51:35] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:51:35] Binding limit=20 offset=0
+[2025-11-23 11:51:35] Returned 0 report rows.
+[2025-11-23 11:52:00] === LIST REPORTS START ===
+[2025-11-23 11:52:00] Role = DOCTOR, UID = 7
+[2025-11-23 11:52:00] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:52:00] Branch: DOCTOR
+[2025-11-23 11:52:00] Doctor patient IDs: [14]
+[2025-11-23 11:52:00] Placeholders count = 1
+[2025-11-23 11:52:00] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:52:00] Total reports found = 0
+[2025-11-23 11:52:00] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:52:00] Binding limit=20 offset=0
+[2025-11-23 11:52:00] Returned 0 report rows.
+[2025-11-23 11:52:09] === LIST REPORTS START ===
+[2025-11-23 11:52:09] Role = DOCTOR, UID = 7
+[2025-11-23 11:52:09] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:52:09] Branch: DOCTOR
+[2025-11-23 11:52:09] Doctor patient IDs: [14]
+[2025-11-23 11:52:09] Placeholders count = 1
+[2025-11-23 11:52:09] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:52:09] Total reports found = 0
+[2025-11-23 11:52:09] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:52:09] Binding limit=20 offset=0
+[2025-11-23 11:52:09] Returned 0 report rows.
+[2025-11-23 11:52:31] === LIST REPORTS START ===
+[2025-11-23 11:52:31] Role = PATIENT, UID = 14
+[2025-11-23 11:52:31] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:52:31] Branch: PATIENT
+[2025-11-23 11:52:31] Returning PATIENT report count = 0
+[2025-11-23 11:52:49] === CREATE REPORT START ===
+[2025-11-23 11:52:49] Incoming patientId=14 title='fever7'
+[2025-11-23 11:52:49] Calling Upload::saveReport...
+[2025-11-23 11:52:49] File saved URL=/uploads/reports/2025/11/6335e1f9d84af9e3.jpg
+[2025-11-23 11:52:49] Inserted report ID = 2
+[2025-11-23 11:52:49] Notifying doctors: [7]
+[2025-11-23 11:52:49] === LIST REPORTS START ===
+[2025-11-23 11:52:49] Role = PATIENT, UID = 14
+[2025-11-23 11:52:49] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:52:49] Branch: PATIENT
+[2025-11-23 11:52:49] Returning PATIENT report count = 1
+[2025-11-23 11:53:00] === LIST REPORTS START ===
+[2025-11-23 11:53:00] Role = PATIENT, UID = 14
+[2025-11-23 11:53:00] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:53:00] Branch: PATIENT
+[2025-11-23 11:53:00] Returning PATIENT report count = 1
+[2025-11-23 11:53:35] === LIST REPORTS START ===
+[2025-11-23 11:53:35] Role = PATIENT, UID = 14
+[2025-11-23 11:53:35] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:53:35] Branch: PATIENT
+[2025-11-23 11:53:35] Returning PATIENT report count = 1
+[2025-11-23 11:54:31] === LIST REPORTS START ===
+[2025-11-23 11:54:31] Role = PATIENT, UID = 14
+[2025-11-23 11:54:31] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:54:31] Branch: PATIENT
+[2025-11-23 11:54:31] Returning PATIENT report count = 1
+[2025-11-23 11:56:07] === LIST REPORTS START ===
+[2025-11-23 11:56:07] Role = DOCTOR, UID = 7
+[2025-11-23 11:56:07] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:56:07] Branch: DOCTOR
+[2025-11-23 11:56:07] Doctor patient IDs: [14]
+[2025-11-23 11:56:07] Placeholders count = 1
+[2025-11-23 11:56:07] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:56:07] Total reports found = 1
+[2025-11-23 11:56:07] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:56:07] Binding limit=20 offset=0
+[2025-11-23 11:56:07] Returned 1 report rows.
+[2025-11-23 11:59:10] === LIST REPORTS START ===
+[2025-11-23 11:59:10] Role = PATIENT, UID = 14
+[2025-11-23 11:59:10] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:59:10] Branch: PATIENT
+[2025-11-23 11:59:10] Returning PATIENT report count = 1
+[2025-11-23 11:59:40] === LIST REPORTS START ===
+[2025-11-23 11:59:40] Role = DOCTOR, UID = 7
+[2025-11-23 11:59:40] Pagination page=1 limit=20 offset=0
+[2025-11-23 11:59:40] Branch: DOCTOR
+[2025-11-23 11:59:40] Doctor patient IDs: [14]
+[2025-11-23 11:59:40] Placeholders count = 1
+[2025-11-23 11:59:40] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 11:59:40] Total reports found = 1
+[2025-11-23 11:59:40] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 11:59:40] Binding limit=20 offset=0
+[2025-11-23 11:59:40] Returned 1 report rows.
+[2025-11-23 12:25:29] === LIST REPORTS START ===
+[2025-11-23 12:25:29] Role = PATIENT, UID = 14
+[2025-11-23 12:25:29] Pagination page=1 limit=20 offset=0
+[2025-11-23 12:25:29] Branch: PATIENT
+[2025-11-23 12:25:29] Returning PATIENT report count = 1
+[2025-11-23 12:25:56] === LIST REPORTS START ===
+[2025-11-23 12:25:56] Role = DOCTOR, UID = 7
+[2025-11-23 12:25:56] Pagination page=1 limit=20 offset=0
+[2025-11-23 12:25:56] Branch: DOCTOR
+[2025-11-23 12:25:56] Doctor patient IDs: [14]
+[2025-11-23 12:25:56] Placeholders count = 1
+[2025-11-23 12:25:56] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 12:25:56] Total reports found = 1
+[2025-11-23 12:25:56] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 12:25:56] Binding limit=20 offset=0
+[2025-11-23 12:25:56] Returned 1 report rows.
+[2025-11-23 12:26:24] === LIST REPORTS START ===
+[2025-11-23 12:26:24] Role = DOCTOR, UID = 7
+[2025-11-23 12:26:24] Pagination page=1 limit=20 offset=0
+[2025-11-23 12:26:24] Branch: DOCTOR
+[2025-11-23 12:26:24] Doctor patient IDs: [14]
+[2025-11-23 12:26:24] Placeholders count = 1
+[2025-11-23 12:26:24] COUNT SQL: SELECT COUNT(*) FROM reports WHERE patient_id IN (?)
+[2025-11-23 12:26:24] Total reports found = 1
+[2025-11-23 12:26:24] ITEM SQL: SELECT r.*, u.name AS patient_name
+                    FROM reports r
+                    LEFT JOIN users u ON r.patient_id = u.id
+                    WHERE r.patient_id IN (?)
+                    ORDER BY r.uploaded_at DESC
+                    LIMIT ? OFFSET ?
+[2025-11-23 12:26:24] Binding limit=20 offset=0
+[2025-11-23 12:26:24] Returned 1 report rows.
+[2025-11-23 12:26:42] === LIST REPORTS START ===
+[2025-11-23 12:26:42] Role = PATIENT, UID = 14
+[2025-11-23 12:26:42] Pagination page=1 limit=20 offset=0
+[2025-11-23 12:26:42] Branch: PATIENT
+[2025-11-23 12:26:42] Returning PATIENT report count = 1

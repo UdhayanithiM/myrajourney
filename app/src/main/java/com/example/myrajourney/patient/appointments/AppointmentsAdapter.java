@@ -5,14 +5,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
 
-// --- ADDED IMPORTS ---
 import com.example.myrajourney.R;
 import com.example.myrajourney.data.model.Appointment;
-// ---------------------
 
 public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapter.ViewHolder> {
 
@@ -33,21 +33,23 @@ public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Appointment appointment = appointments.get(position);
+        Appointment a = appointments.get(position);
 
-        // Using safe checks in case fields are null
-        if (appointment.getPatientName() != null) {
-            holder.patientName.setText(appointment.getPatientName());
+        // Doctor schedule -> show patient name
+        if (a.getPatientName() != null) {
+            holder.patientName.setText(a.getPatientName());
         } else {
-            holder.patientName.setText("Unknown Patient");
+            holder.patientName.setText("Patient");
         }
 
-        holder.time.setText(appointment.getTimeSlot());
+        // formatted fields
+        holder.date.setText(a.getFormattedDate());
+        holder.time.setText(a.getFormattedTimeSlot());
 
-        // 'getTitle()' corresponds to the Appointment Type/Reason in your model
-        holder.type.setText(appointment.getTitle());
-
-        holder.date.setText(appointment.getDate());
+        // title / type / reason
+        if (a.getAppointmentType() != null) holder.type.setText(a.getAppointmentType());
+        else if (a.getReason() != null) holder.type.setText(a.getReason());
+        else holder.type.setText(a.getTitle());
     }
 
     @Override
@@ -60,8 +62,10 @@ public class AppointmentsAdapter extends RecyclerView.Adapter<AppointmentsAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Ensure these IDs exist in your item_appointment.xml
-            patientName = itemView.findViewById(R.id.patient_name);
+
+            // ✅ FIXED — correct ID from XML
+            patientName = itemView.findViewById(R.id.appointment_person);
+
             time = itemView.findViewById(R.id.appointment_time);
             type = itemView.findViewById(R.id.appointment_type);
             date = itemView.findViewById(R.id.appointment_date);

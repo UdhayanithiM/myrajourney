@@ -5,17 +5,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-// --- CRITICAL IMPORT ---
 import com.example.myrajourney.R;
-// ----------------------
-
 import com.example.myrajourney.data.model.Notification;
+
 import java.util.List;
 
 public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdapter.VH> {
+
     private final Context context;
     private final List<Notification> data;
 
@@ -32,13 +32,20 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
     }
 
     @Override
-    public void onBindViewHolder(@NonNull VH h, int i) {
-        Notification n = data.get(i);
-        h.title.setText(n.getTitle());
-        // Uses the helper getBody() added to the model
-        h.body.setText(n.getBody() == null ? "" : n.getBody());
-        h.time.setText(n.getCreatedAt());
-        // Uses the helper isUnread() added to the model
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        Notification n = data.get(position);
+
+        // Title
+        h.title.setText(n.getTitle() == null ? "No Title" : n.getTitle());
+
+        // Body
+        String bodyText = n.getBody();
+        h.body.setText(bodyText == null ? "" : bodyText);
+
+        // Timestamp
+        h.time.setText(n.getCreatedAt() == null ? "" : n.getCreatedAt());
+
+        // Unread indicator
         h.unreadDot.setVisibility(n.isUnread() ? View.VISIBLE : View.INVISIBLE);
     }
 

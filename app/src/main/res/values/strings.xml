@@ -6,4 +6,8 @@
     <string name="address">Address</string>
     <string name="password">Password</string>
     <string name="save">Save</string>
+    <string name="menu">Menu</string>
+    <string name="logout">Logout</string>
+
 </resources>
+

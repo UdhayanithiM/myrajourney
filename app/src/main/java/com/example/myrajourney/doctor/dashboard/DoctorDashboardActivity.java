@@ -4,30 +4,22 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.navigation.NavigationView;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import com.example.myrajourney.R;
 import com.example.myrajourney.auth.LoginActivity;
 import com.example.myrajourney.admin.users.CreatePatientActivity;
@@ -39,33 +31,33 @@ import com.example.myrajourney.doctor.patients.AllPatientsActivity;
 import com.example.myrajourney.admin.logs.NotificationBadgeUpdater;
 import com.example.myrajourney.core.ui.ThemeManager;
 import com.example.myrajourney.core.session.SessionManager;
-// ✅ Ensure this imports the correct model
 import com.example.myrajourney.data.model.Patient;
 import com.example.myrajourney.admin.logs.NotificationsAdapter;
 import com.example.myrajourney.doctor.patients.PatientsAdapter;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 public class DoctorDashboardActivity extends AppCompatActivity {
 
-    // RecyclerViews
     RecyclerView notificationsRecycler, patientsRecycler;
 
-    // Lists
     List<com.example.myrajourney.data.model.Notification> notificationsList;
     List<Patient> patientsList;
 
-    // UI Components
     private TextView totalPatientsText, activePatientsText, aiInsightsText, aiInsightsTitle;
     private ProgressBar insightsProgress;
     private CardView aiInsightsCard;
-    private Button btnNewPatient, btnSchedule, btnReports, btnAddAppointment;
-    private ImageView logoutBtn, menuIcon;
+    private View btnNewPatient, btnSchedule, btnReports, btnAddAppointment;
+    private ImageView logoutBtn, menuIcon, notificationsBtn;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
 
-    // Session Manager
+    private View bottomDashboard, bottomPatients, bottomSchedule, bottomReports;
+
     private SessionManager sessionManager;
 
-    // Mock data
     private int totalPatients = 0;
     private int activePatientsToday = 0;
 
@@ -76,36 +68,31 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_doctor_dashboard);
 
         sessionManager = new SessionManager(this);
-
         if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        initializeViews();
+        initViews();
         setupClickListeners();
         loadData();
         setupNotifications();
         setupPatientsList();
         generateAIInsights();
+        setupBackHandler();
 
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                } else {
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
-                }
-            }
-        });
+        // ⭐ ADDED: initialize drawer header + menu actions
+        setupNavigationDrawer();
     }
 
-    private void initializeViews() {
-        logoutBtn = findViewById(R.id.logoutBtn);
+    private void initViews() {
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
         menuIcon = findViewById(R.id.menu_icon);
+        logoutBtn = findViewById(R.id.logoutBtn);
+        notificationsBtn = findViewById(R.id.notificationsBtn);
+
         totalPatientsText = findViewById(R.id.totalPatients);
         activePatientsText = findViewById(R.id.activePatients);
         aiInsightsText = findViewById(R.id.aiInsightsText);
@@ -113,60 +100,117 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         insightsProgress = findViewById(R.id.insightsProgress);
         aiInsightsCard = findViewById(R.id.aiInsightsCard);
 
-        TextView welcomeDoctorText = findViewById(R.id.welcomeDoctorText);
-        if (welcomeDoctorText != null) {
-            String userName = sessionManager.getUserName();
-            if (userName != null && !userName.isEmpty()) {
-                welcomeDoctorText.setText("Welcome, Dr. " + userName + "!");
-            } else {
-                welcomeDoctorText.setText("Welcome, Doctor!");
-            }
-        }
-
         btnNewPatient = findViewById(R.id.btnNewPatient);
         btnSchedule = findViewById(R.id.btnSchedule);
         btnReports = findViewById(R.id.btnReports);
         btnAddAppointment = findViewById(R.id.btnAddAppointment);
 
-        drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
-        setupNavigationDrawer();
+        notificationsRecycler = findViewById(R.id.notifications_recycler);
+        patientsRecycler = findViewById(R.id.patients_recycler);
+
+        bottomDashboard = findViewById(R.id.bottom_dashboard);
+        bottomPatients = findViewById(R.id.bottom_patients);
+        bottomSchedule = findViewById(R.id.bottom_schedule);
+        bottomReports = findViewById(R.id.bottom_reports);
     }
 
     private void setupClickListeners() {
-        menuIcon.setOnClickListener(v -> {
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-            } else {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
+
+        if (menuIcon != null) {
+            menuIcon.setOnClickListener(v -> {
+                if (drawerLayout != null) drawerLayout.openDrawer(GravityCompat.START);
+            });
+        }
+
+        if (logoutBtn != null) {
+            logoutBtn.setOnClickListener(v -> showLogoutDialog());
+        }
+
+        if (btnNewPatient != null) btnNewPatient.setOnClickListener(v ->
+                startActivity(new Intent(DoctorDashboardActivity.this, CreatePatientActivity.class)));
+
+        if (btnSchedule != null) btnSchedule.setOnClickListener(v -> {
+            startActivity(new Intent(DoctorDashboardActivity.this, DoctorScheduleActivity.class));
+
+            // ⭐ ADDED: update bottom nav status
+            setBottomNavActive(bottomSchedule);
         });
 
-        logoutBtn.setOnClickListener(v -> showLogoutDialog());
-
-        btnNewPatient.setOnClickListener(v -> startActivity(new Intent(DoctorDashboardActivity.this, CreatePatientActivity.class)));
-        btnSchedule.setOnClickListener(v -> startActivity(new Intent(DoctorDashboardActivity.this, DoctorScheduleActivity.class)));
-        btnReports.setOnClickListener(v -> startActivity(new Intent(DoctorDashboardActivity.this, DoctorReportsActivity.class)));
+        if (btnReports != null) btnReports.setOnClickListener(v -> {
+            startActivity(new Intent(DoctorDashboardActivity.this, DoctorReportsActivity.class));
+            setBottomNavActive(bottomReports);
+        });
 
         if (btnAddAppointment != null) {
-            btnAddAppointment.setOnClickListener(v -> startActivity(new Intent(DoctorDashboardActivity.this, AddAppointmentActivity.class)));
+            btnAddAppointment.setOnClickListener(v -> {
+                Intent intent = new Intent(DoctorDashboardActivity.this, AddAppointmentActivity.class);
+
+                // ⭐ ADDED: pass doctor_id explicitly (helps with UI logic)
+                intent.putExtra("context", "DOCTOR");
+                intent.putExtra("doctor_id", sessionManager.getUserId());
+
+                startActivity(intent);
+            });
         }
 
         View viewAllNotifs = findViewById(R.id.view_all_notifications);
-        if (viewAllNotifs != null) {
-            viewAllNotifs.setOnClickListener(v -> startActivity(new Intent(DoctorDashboardActivity.this, AllNotificationsActivity.class)));
-        }
+        if (viewAllNotifs != null)
+            viewAllNotifs.setOnClickListener(v ->
+                    startActivity(new Intent(DoctorDashboardActivity.this, AllNotificationsActivity.class)));
 
-        View notifBtn = findViewById(R.id.notificationsBtn);
-        if (notifBtn != null) {
-            notifBtn.setOnClickListener(v -> startActivity(new Intent(this, AllNotificationsActivity.class)));
+        if (notificationsBtn != null) {
+            notificationsBtn.setOnClickListener(v ->
+                    startActivity(new Intent(DoctorDashboardActivity.this, AllNotificationsActivity.class)));
             TextView badge = findViewById(R.id.notifBadge);
             NotificationBadgeUpdater.update(this, badge);
         }
 
         View viewAllPatients = findViewById(R.id.view_all_patients);
         if (viewAllPatients != null) {
-            viewAllPatients.setOnClickListener(v -> startActivity(new Intent(DoctorDashboardActivity.this, AllPatientsActivity.class)));
+            viewAllPatients.setOnClickListener(v ->
+                    startActivity(new Intent(DoctorDashboardActivity.this, AllPatientsActivity.class)));
+        }
+
+        if (bottomDashboard != null) {
+            bottomDashboard.setOnClickListener(v -> {
+                findViewById(R.id.mainScroll).scrollTo(0, 0);
+                setBottomNavActive(bottomDashboard);
+            });
+        }
+
+        if (bottomPatients != null) {
+            bottomPatients.setOnClickListener(v -> {
+                View patientsAnchor = findViewById(R.id.patients_recycler);
+                if (patientsAnchor != null) {
+                    patientsAnchor.getParent().requestChildFocus(patientsAnchor, patientsAnchor);
+                    NestedScrollView scroll = findViewById(R.id.mainScroll);
+                    scroll.smoothScrollTo(0, patientsAnchor.getTop());
+                }
+                setBottomNavActive(bottomPatients);
+            });
+        }
+
+        if (bottomSchedule != null) {
+            bottomSchedule.setOnClickListener(v -> {
+                startActivity(new Intent(DoctorDashboardActivity.this, DoctorScheduleActivity.class));
+                setBottomNavActive(bottomSchedule);
+            });
+        }
+
+        if (bottomReports != null) {
+            bottomReports.setOnClickListener(v -> {
+                startActivity(new Intent(DoctorDashboardActivity.this, DoctorReportsActivity.class));
+                setBottomNavActive(bottomReports);
+            });
+        }
+    }
+
+    private void setBottomNavActive(View active) {
+        View[] items = new View[]{bottomDashboard, bottomPatients, bottomSchedule, bottomReports};
+        for (View it : items) {
+            if (it == null) continue;
+            it.setSelected(it == active);
+            it.setElevation(it == active ? 8f : 0f);
         }
     }
 
@@ -175,12 +219,17 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     }
 
     private void loadStatisticsFromBackend() {
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> call = apiService.getDoctorOverview();
+        com.example.myrajourney.core.network.ApiService apiService =
+                com.example.myrajourney.core.network.ApiClient.getApiService(this);
+
+        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> call =
+                apiService.getDoctorOverview();
 
         call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> call, retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> response) {
+            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> call,
+                                   retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> response) {
+
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     com.example.myrajourney.data.model.DoctorOverview overview = response.body().getData();
                     if (overview != null) {
@@ -196,7 +245,8 @@ public class DoctorDashboardActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> call, Throwable t) {
+            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<com.example.myrajourney.data.model.DoctorOverview>> call,
+                                  Throwable t) {
                 totalPatients = 0;
                 activePatientsToday = 0;
                 updateStatistics();
@@ -216,12 +266,17 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     }
 
     private void loadNotificationsFromBackend() {
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> call = apiService.getNotifications(1, 5, true);
+        com.example.myrajourney.core.network.ApiService apiService =
+                com.example.myrajourney.core.network.ApiClient.getApiService(this);
+
+        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> call =
+                apiService.getNotifications(1, 5, true);
 
         call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> call, retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> response) {
+            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> call,
+                                   retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> response) {
+
                 List<com.example.myrajourney.data.model.Notification> notifications = new ArrayList<>();
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     notifications = response.body().getData();
@@ -229,17 +284,26 @@ public class DoctorDashboardActivity extends AppCompatActivity {
                 }
 
                 if (notificationsRecycler != null) {
-                    NotificationsAdapter notificationsAdapter = new NotificationsAdapter(DoctorDashboardActivity.this, notifications);
-                    notificationsRecycler.setLayoutManager(new LinearLayoutManager(DoctorDashboardActivity.this, LinearLayoutManager.VERTICAL, false));
+                    NotificationsAdapter notificationsAdapter =
+                            new NotificationsAdapter(DoctorDashboardActivity.this, notifications);
+
+                    notificationsRecycler.setLayoutManager(
+                            new LinearLayoutManager(DoctorDashboardActivity.this, LinearLayoutManager.VERTICAL, false)
+                    );
                     notificationsRecycler.setAdapter(notificationsAdapter);
                 }
             }
 
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> call, Throwable t) {
+            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.Notification>>> call,
+                                  Throwable t) {
                 if (notificationsRecycler != null) {
-                    NotificationsAdapter notificationsAdapter = new NotificationsAdapter(DoctorDashboardActivity.this, new ArrayList<>());
-                    notificationsRecycler.setLayoutManager(new LinearLayoutManager(DoctorDashboardActivity.this, LinearLayoutManager.VERTICAL, false));
+                    NotificationsAdapter notificationsAdapter =
+                            new NotificationsAdapter(DoctorDashboardActivity.this, new ArrayList<>());
+
+                    notificationsRecycler.setLayoutManager(
+                            new LinearLayoutManager(DoctorDashboardActivity.this, LinearLayoutManager.VERTICAL, false)
+                    );
                     notificationsRecycler.setAdapter(notificationsAdapter);
                 }
             }
@@ -253,29 +317,46 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     }
 
     private void loadPatientsFromBackend() {
-        com.example.myrajourney.core.network.ApiService apiService = com.example.myrajourney.core.network.ApiClient.getApiService(this);
-        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> call = apiService.getAllPatients();
+        com.example.myrajourney.core.network.ApiService apiService =
+                com.example.myrajourney.core.network.ApiClient.getApiService(this);
+
+        retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> call =
+                apiService.getAllPatients();
 
         call.enqueue(new retrofit2.Callback<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>>() {
             @Override
-            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> call, retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> response) {
+            public void onResponse(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> call,
+                                   retrofit2.Response<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> response) {
+
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     List<com.example.myrajourney.data.model.User> users = response.body().getData();
+
                     if (users != null) {
                         patientsList.clear();
+
                         for (com.example.myrajourney.data.model.User user : users) {
-                            if (user.getRole() != null && user.getRole().equals("PATIENT")) {
+                            if ("PATIENT".equals(user.getRole())) {
+
                                 String name = user.getName() != null ? user.getName() : "Patient";
                                 String email = user.getEmail() != null ? user.getEmail() : "";
+                                String age = user.getAge() != null ? user.getAge() : "N/A";
 
-                                // ✅ FIXED: Use the 3-argument constructor we added to data.model.Patient
-                                // If this still fails, ensure your data.model.Patient file has public Patient(String, String, int)
-                                patientsList.add(new Patient(name, email, R.drawable.ic_person_default));
+                                Patient p = new Patient(
+                                        user.getId(),
+                                        name,
+                                        email,
+                                        age
+                                );
+                                p.setImageResId(R.drawable.ic_person_default);
+
+                                patientsList.add(p);
                             }
                         }
 
                         if (patientsRecycler != null) {
-                            PatientsAdapter patientsAdapter = new PatientsAdapter(DoctorDashboardActivity.this, patientsList);
+                            PatientsAdapter patientsAdapter =
+                                    new PatientsAdapter(DoctorDashboardActivity.this, patientsList);
+
                             patientsRecycler.setLayoutManager(new LinearLayoutManager(DoctorDashboardActivity.this));
                             patientsRecycler.setAdapter(patientsAdapter);
                         }
@@ -286,7 +367,8 @@ public class DoctorDashboardActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> call, Throwable t) {
+            public void onFailure(retrofit2.Call<com.example.myrajourney.data.model.ApiResponse<List<com.example.myrajourney.data.model.User>>> call,
+                                  Throwable t) {
                 setEmptyPatientList();
             }
         });
@@ -294,7 +376,9 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
     private void setEmptyPatientList() {
         if (patientsRecycler != null) {
-            PatientsAdapter patientsAdapter = new PatientsAdapter(DoctorDashboardActivity.this, new ArrayList<>());
+            PatientsAdapter patientsAdapter =
+                    new PatientsAdapter(DoctorDashboardActivity.this, new ArrayList<>());
+
             patientsRecycler.setLayoutManager(new LinearLayoutManager(DoctorDashboardActivity.this));
             patientsRecycler.setAdapter(patientsAdapter);
         }
@@ -323,6 +407,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
                     aiInsightsCard.setOnClickListener(v -> {
                         if (aiInsightsText != null) aiInsightsText.setText("Refreshing...");
                         if (insightsProgress != null) insightsProgress.setVisibility(View.VISIBLE);
+
                         new Handler().postDelayed(() -> {
                             String newInsight = possibleInsights[new Random().nextInt(possibleInsights.length)];
                             if (aiInsightsText != null) aiInsightsText.setText(newInsight);
@@ -334,6 +419,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         }, 2000);
     }
 
+    // ⭐ ADDED: drawer setup call was missing
     private void setupNavigationDrawer() {
         if (navigationView == null) return;
 
@@ -379,16 +465,30 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     }
 
     private void showLogoutDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Logout")
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // ✅ FIXED: Removed arguments. sessionManager.logout() takes NO parameters.
                     sessionManager.logout();
-                    startActivity(new Intent(this, LoginActivity.class));
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                     finish();
                 })
                 .setNegativeButton("No", null)
                 .show();
+    }
+
+    private void setupBackHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    finishAffinity();
+                }
+            }
+        });
     }
 }

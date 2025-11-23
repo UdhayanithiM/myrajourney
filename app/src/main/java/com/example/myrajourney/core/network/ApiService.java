@@ -44,7 +44,7 @@ import retrofit2.http.Query;
 
 public interface ApiService {
 
-    // --- Auth Endpoints ---
+    // --- Auth ---
     @POST("auth/register")
     Call<ApiResponse<AuthResponse>> register(@Body AuthRequest request);
 
@@ -66,27 +66,53 @@ public interface ApiService {
     @PUT("users/me")
     Call<ApiResponse<User>> updateProfile(@Body Map<String, String> fields);
 
-    // --- Education Endpoints ---
+
+    // --- Education ---
     @GET("education/articles")
     Call<ApiResponse<List<EducationArticle>>> getEducationArticles();
 
     @GET("education/articles/{slug}")
     Call<ApiResponse<EducationArticle>> getEducationArticle(@Path("slug") String slug);
 
-    // --- Patient Endpoints ---
+
+    // --- Patient ---
     @GET("patients/me/overview")
     Call<ApiResponse<PatientOverview>> getPatientOverview();
 
     @GET("patients")
     Call<ApiResponse<List<User>>> getAllPatients();
 
-    // --- Doctor Endpoints ---
+
+    // --- Doctor ---
     @GET("doctor/overview")
     Call<ApiResponse<DoctorOverview>> getDoctorOverview();
 
-    // --- Appointment Endpoints ---
+    @GET("admin/doctors")
+    Call<ApiResponse<List<Doctor>>> getAllDoctors();
+
+    @GET("users/doctors")
+    Call<ApiResponse<List<User>>> getDoctors();
+
+
+    // --- Appointments ---
     @GET("appointments")
     Call<ApiResponse<List<Appointment>>> getAppointments();
+
+    @GET("appointments")
+    Call<ApiResponse<List<Appointment>>> getAppointments(
+            @Query("patient_id") Integer patientId,
+            @Query("doctor_id") Integer doctorId
+    );
+
+    @GET("appointments")
+    Call<ApiResponse<List<Appointment>>> getPatientAppointments(
+            @Query("patient_id") int patientId
+    );
+
+    @GET("appointments")
+    Call<ApiResponse<List<Appointment>>> getDoctorAppointments(
+            @Query("doctor_id") int doctorId
+    );
 
     @POST("appointments")
     Call<ApiResponse<Appointment>> createAppointment(@Body AppointmentRequest request);
@@ -94,20 +120,35 @@ public interface ApiService {
     @GET("appointments/{id}")
     Call<ApiResponse<Appointment>> getAppointment(@Path("id") String id);
 
-    // --- Medication Endpoints ---
+
+    // --- Medication ---
     @GET("patient-medications")
     Call<ApiResponse<List<Medication>>> getPatientMedications();
 
+    @GET("patient-medications")
+    Call<ApiResponse<List<Medication>>> getPatientMedications(
+            @Query("patient_id") int patientId
+    );
+
+    @GET("patient-medications")
+    Call<ApiResponse<List<Map<String, Object>>>> getPatientMedicationsRaw(
+            @Query("patient_id") int patientId
+    );
+
     @POST("patient-medications")
-    Call<ApiResponse<Medication>> assignMedication(@Body MedicationRequest request);
+    Call<ApiResponse<Map<String, Object>>> doctorAssignMedication(@Body Map<String, Object> request);
 
     @PATCH("patient-medications/{id}")
     Call<ApiResponse<Void>> setMedicationActive(@Path("id") String id, @Body ActiveRequest request);
 
+    @GET("medications")
+    Call<ApiResponse<List<Medication>>> searchMedications(@Query("q") String query);
+
     @POST("medication-logs")
     Call<ApiResponse<MedicationLog>> logMedicationIntake(@Body MedicationLogRequest request);
 
-    // --- Report Endpoints ---
+
+    // --- Reports ---
     @GET("reports")
     Call<ApiResponse<List<Report>>> getReports();
 
@@ -129,7 +170,12 @@ public interface ApiService {
     @GET("reports/{id}")
     Call<ApiResponse<Report>> getReport(@Path("id") String id);
 
-    // --- Notification Endpoints ---
+    // ⭐ ADDED — Needed for status update
+    @POST("reports/status")
+    Call<ApiResponse<Object>> updateReportStatus(@Body Map<String, Object> request);
+
+
+    // --- Notifications ---
     @GET("notifications")
     Call<ApiResponse<List<Notification>>> getNotifications(
             @Query("page") Integer page,
@@ -140,35 +186,38 @@ public interface ApiService {
     @POST("notifications/{id}/read")
     Call<ApiResponse<Void>> markNotificationRead(@Path("id") String id);
 
-    // --- Symptom Endpoints ---
+
+    // --- Symptoms ---
     @GET("symptoms")
     Call<ApiResponse<List<Symptom>>> getSymptoms();
 
     @POST("symptoms")
     Call<ApiResponse<Symptom>> createSymptom(@Body SymptomRequest request);
 
-    // --- Settings Endpoints ---
+
+    // --- Settings ---
     @GET("settings")
     Call<ApiResponse<Settings>> getSettings();
 
     @PUT("settings")
     Call<ApiResponse<Settings>> updateSettings(@Body SettingsRequest request);
 
-    // --- Rehab Plans ---
+
+    // --- Rehab ---
+    @POST("rehab-plans")
+    Call<ApiResponse<Map<String, Object>>> createRehabPlan(@Body Map<String, Object> request);
+
     @GET("rehab-plans")
     Call<ApiResponse<List<RehabPlan>>> getRehabPlans(@Query("patient_id") Integer patientId);
 
-    // --- Admin Endpoints ---
+
+    // --- Admin ---
     @POST("admin/users")
     Call<ApiResponse<User>> createUser(@Body CreateUserRequest request);
 
     @POST("admin/assign-patient")
     Call<ApiResponse<Void>> assignPatientToDoctor(@Body Map<String, Integer> request);
 
-    @GET("admin/doctors")
-    Call<ApiResponse<List<Doctor>>> getAllDoctors();
-
-    // ✅ ADDED: Generic user fetch (Requires backend support for GET /api/v1/users)
     @GET("users")
     Call<ApiResponse<List<User>>> getAllUsers();
 }
