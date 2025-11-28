@@ -75,7 +75,7 @@ public class CreatePatientActivity extends AppCompatActivity {
         request.setEmail(email);
         request.setMobile(mobile);
         request.setRole("PATIENT");
-        request.setPassword("welcome123");
+        request.setPassword("welcome1");
         request.setAddress(address);
 
         // ✅ FIXED: Added this line to actually send the age

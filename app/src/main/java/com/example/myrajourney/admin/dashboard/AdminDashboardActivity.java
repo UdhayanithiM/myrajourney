@@ -34,7 +34,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private ImageView iconMenu, logoutBtn;
 
     private LinearLayout navUpdatePatient, navUpdateDoctor, navSettings;
-    private Button btnCreatePatient, btnCreateDoctor, btnAssignPatients, btnViewAllPatients, btnViewAllDoctors;
+    private Button btnCreatePatient, btnCreateDoctor, btnAssignPatients, btnViewAllPatients;
 
     private SearchView searchBar;
 
@@ -48,7 +48,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
-        // Validate login
+        // Redirect if session is invalid
         if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -62,6 +62,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+
         drawerLayout = findViewById(R.id.drawerLayout);
         navigationView = findViewById(R.id.navigationView);
 
@@ -72,100 +73,75 @@ public class AdminDashboardActivity extends AppCompatActivity {
         btnCreateDoctor = findViewById(R.id.btnCreateDoctor);
         btnAssignPatients = findViewById(R.id.btnAssignPatients);
         btnViewAllPatients = findViewById(R.id.btnViewAllPatients);
-        btnViewAllDoctors = findViewById(R.id.btnViewAllDoctors);
+
 
         navUpdatePatient = findViewById(R.id.navUpdatePatient);
         navUpdateDoctor = findViewById(R.id.navUpdateDoctor);
         navSettings = findViewById(R.id.navSettings);
 
-        searchBar = findViewById(R.id.searchBar); // FIXED — correct SearchView class
+        searchBar = findViewById(R.id.searchBar);
     }
 
     private void setupDrawer() {
 
-        // Open drawer
-        if (iconMenu != null) {
-            iconMenu.setOnClickListener(v -> {
-                if (drawerLayout != null) {
-                    drawerLayout.openDrawer(GravityCompat.START);
-                }
-            });
-        }
+        iconMenu.setOnClickListener(v ->
+                drawerLayout.openDrawer(GravityCompat.START)
+        );
 
-        // Handle drawer menu
-        if (navigationView != null) {
-            navigationView.setNavigationItemSelectedListener(item -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                return true;
-            });
-        }
+        navigationView.setNavigationItemSelectedListener(item -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
 
-        // Logout
-        if (logoutBtn != null) {
-            logoutBtn.setOnClickListener(v -> showLogoutDialog());
-        }
+        logoutBtn.setOnClickListener(v -> showLogoutDialog());
     }
 
     private void setupButtons() {
 
-        if (btnCreatePatient != null)
-            btnCreatePatient.setOnClickListener(v ->
-                    startActivity(new Intent(this, CreatePatientActivity.class))
-            );
+        btnCreatePatient.setOnClickListener(v ->
+                startActivity(new Intent(this, CreatePatientActivity.class))
+        );
 
-        if (btnCreateDoctor != null)
-            btnCreateDoctor.setOnClickListener(v ->
-                    startActivity(new Intent(this, CreateDoctorActivity.class))
-            );
+        btnCreateDoctor.setOnClickListener(v ->
+                startActivity(new Intent(this, CreateDoctorActivity.class))
+        );
 
-        if (btnAssignPatients != null)
-            btnAssignPatients.setOnClickListener(v ->
-                    startActivity(new Intent(this, AssignPatientToDoctorActivity.class))
-            );
+        btnAssignPatients.setOnClickListener(v ->
+                startActivity(new Intent(this, AssignPatientToDoctorActivity.class))
+        );
 
-        if (btnViewAllPatients != null)
-            btnViewAllPatients.setOnClickListener(v ->
-                    startActivity(new Intent(this, AllPatientsActivity.class))
-            );
+        btnViewAllPatients.setOnClickListener(v ->
+                startActivity(new Intent(this, AllPatientsActivity.class))
+        );
 
-        if (btnViewAllDoctors != null)
-            btnViewAllDoctors.setOnClickListener(v ->
-                    Toast.makeText(this, "View All Doctors - Coming Soon", Toast.LENGTH_SHORT).show()
-            );
 
-        if (navUpdatePatient != null)
-            navUpdatePatient.setOnClickListener(v ->
-                    startActivity(new Intent(this, EditPatientActivity.class))
-            );
+        navUpdatePatient.setOnClickListener(v ->
+                startActivity(new Intent(this, EditPatientActivity.class))
+        );
 
-        if (navUpdateDoctor != null)
-            navUpdateDoctor.setOnClickListener(v ->
-                    startActivity(new Intent(this, EditDoctorActivity.class))
-            );
+        navUpdateDoctor.setOnClickListener(v ->
+                startActivity(new Intent(this, EditDoctorActivity.class))
+        );
 
-        if (navSettings != null)
-            navSettings.setOnClickListener(v ->
-                    startActivity(new Intent(this, SettingsActivity.class))
-            );
+        navSettings.setOnClickListener(v ->
+                startActivity(new Intent(this, SettingsActivity.class))
+        );
     }
 
     private void setupBackPressHandler() {
-        getOnBackPressedDispatcher().addCallback(this,
-                new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
 
-                        // Close drawer first
-                        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                            drawerLayout.closeDrawer(GravityCompat.START);
-                            return;
-                        }
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
 
-                        // Clean exit without returning to login
-                        finishAffinity();
-                    }
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                    return;
                 }
-        );
+
+                finishAffinity();
+            }
+        });
     }
 
     private void showLogoutDialog() {

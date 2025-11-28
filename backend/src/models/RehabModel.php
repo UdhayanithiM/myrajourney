@@ -16,21 +16,30 @@ class RehabModel
     }
 
     /**
-     * List all plans for a patient
+     * List all plans for a patient AND their exercises
      */
     public function plans(int $patientId): array
     {
+        // 1. Get the Plans
         $stmt = $this->db->prepare(
             'SELECT * FROM rehab_plans WHERE patient_id = :pid ORDER BY updated_at DESC'
         );
         $stmt->execute([':pid' => $patientId]);
+        $plans = $stmt->fetchAll();
 
-        return $stmt->fetchAll();
+        // 2. Loop through plans and attach exercises
+        // ✅ FIX: The previous code stopped here. We need to get the details.
+        foreach ($plans as &$plan) {
+            $stmtEx = $this->db->prepare('SELECT * FROM rehab_exercises WHERE rehab_plan_id = :id');
+            $stmtEx->execute([':id' => $plan['id']]);
+            $plan['exercises'] = $stmtEx->fetchAll();
+        }
+
+        return $plans;
     }
 
-    /**
-     * Create rehab plan
-     */
+    // ... keep the rest of your existing methods (createPlan, addExercises, planWithExercises) exactly as they are ...
+
     public function createPlan(array $d): int
     {
         $stmt = $this->db->prepare(
@@ -47,9 +56,6 @@ class RehabModel
         return (int)$this->db->lastInsertId();
     }
 
-    /**
-     * Add exercises to a plan
-     */
     public function addExercises(int $planId, array $exercises): void
     {
         $stmt = $this->db->prepare(
@@ -70,12 +76,8 @@ class RehabModel
         }
     }
 
-    /**
-     * Fetch plan with exercises
-     */
     public function planWithExercises(int $id): ?array
     {
-        // Fetch plan
         $p = $this->db->prepare('SELECT * FROM rehab_plans WHERE id = :id');
         $p->execute([':id' => $id]);
         $plan = $p->fetch();
@@ -84,9 +86,8 @@ class RehabModel
             return null;
         }
 
-        // Fetch exercises
         $e = $this->db->prepare('SELECT * FROM rehab_exercises WHERE rehab_plan_id = :id');
-        $e->execute([':id' => $id]);   // FIXED HERE ✔✔✔
+        $e->execute([':id' => $id]);
 
         $plan['exercises'] = $e->fetchAll();
 

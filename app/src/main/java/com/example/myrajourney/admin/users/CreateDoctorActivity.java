@@ -38,7 +38,7 @@ public class CreateDoctorActivity extends AppCompatActivity {
     private TextView tvCredentials;
 
     private Uri imageUri;
-    private String defaultPassword = "welcome123";
+    private String defaultPassword = "welcome1";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

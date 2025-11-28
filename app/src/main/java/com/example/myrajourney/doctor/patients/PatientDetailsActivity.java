@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable; // Added this import
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,7 +32,6 @@ import com.example.myrajourney.data.model.Rehab;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -82,9 +82,77 @@ public class PatientDetailsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Refresh data when returning to screen
         loadMedicationsFromBackend();
         loadRehabFromBackend();
         loadAppointmentsFromBackend();
+    }
+
+    // ✅ FIXED: Removed syntax error in parameters
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQ_ADD_REHAB && resultCode == RESULT_OK && data != null) {
+            // Get the list of exercises the doctor selected
+            ArrayList<Rehab> selectedExercises = data.getParcelableArrayListExtra("selected_rehab");
+
+            // Send them to the backend
+            if (selectedExercises != null && !selectedExercises.isEmpty()) {
+                saveRehabPlanToBackend(selectedExercises);
+            } else {
+                Toast.makeText(this, "No exercises selected", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void saveRehabPlanToBackend(List<Rehab> exercises) {
+        // 1. Prepare the Payload (JSON Body)
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("patient_id", currentPatientId);
+        payload.put("title", "Assigned Therapy Plan");
+        payload.put("description", "Exercises assigned by Doctor for " + currentPatientName);
+
+        // Convert List<Rehab> to List<Map> for JSON
+        List<Map<String, Object>> exercisesList = new ArrayList<>();
+        for (Rehab r : exercises) {
+            Map<String, Object> exMap = new HashMap<>();
+            exMap.put("name", r.getName());
+            exMap.put("description", r.getDescription());
+            exMap.put("reps", r.getReps());
+            exMap.put("frequency_per_week", r.getFrequency());
+            exMap.put("sets", 3); // Default if not provided
+
+            exercisesList.add(exMap);
+        }
+        payload.put("exercises", exercisesList);
+
+        Toast.makeText(this, "Saving plan...", Toast.LENGTH_SHORT).show();
+
+        // 2. Call the API
+        ApiService api = ApiClient.getApiService(this);
+        api.createRehabPlan(payload).enqueue(new Callback<ApiResponse<Map<String, Object>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Map<String, Object>>> call, Response<ApiResponse<Map<String, Object>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Toast.makeText(PatientDetailsActivity.this, "Rehab Plan Assigned Successfully!", Toast.LENGTH_LONG).show();
+
+                    // Refresh the list on screen
+                    loadRehabFromBackend();
+                } else {
+                    String error = "Failed to save";
+                    if(response.body() != null && response.body().getError() != null) {
+                        error = response.body().getError().getMessage();
+                    }
+                    Toast.makeText(PatientDetailsActivity.this, error, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Map<String, Object>>> call, Throwable t) {
+                Toast.makeText(PatientDetailsActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void initViews() {
@@ -197,7 +265,6 @@ public class PatientDetailsActivity extends AppCompatActivity {
             }
         });
 
-        // FIXED: Correct patient → doctor mode report opening
         reportsAdapter.setOnReportClickListener(report -> {
             Intent intent = new Intent(this, ReportDetailsActivity.class);
             intent.putExtra("patient_name", currentPatientName);
@@ -349,8 +416,6 @@ public class PatientDetailsActivity extends AppCompatActivity {
 
                     for (Report r : response.body().getData()) {
 
-                        // IMPORTANT FIX:
-                        // Only load reports for THIS patient
                         if (String.valueOf(r.getPatientId()).equals(String.valueOf(currentPatientId))) {
 
                             Report model = new Report();

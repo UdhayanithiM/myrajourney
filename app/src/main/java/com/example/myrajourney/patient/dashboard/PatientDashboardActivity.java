@@ -34,8 +34,6 @@ import com.example.myrajourney.patient.medications.PatientMedicationsActivity;
 import com.example.myrajourney.patient.rehab.PatientRehabilitationActivity;
 import com.example.myrajourney.patient.reports.ReportList;
 import com.example.myrajourney.patient.symptoms.SymptomLogActivity;
-import com.example.myrajourney.doctor.dashboard.HealthStatsActivity;
-import com.example.myrajourney.admin.logs.AllNotificationsActivity;
 import com.example.myrajourney.admin.dashboard.SettingsActivity;
 
 import com.google.android.material.navigation.NavigationView;
@@ -81,7 +79,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         observeViewModel();
     }
 
-    // ⭐ ADDED — refresh appointments when user returns
     @Override
     protected void onResume() {
         super.onResume();
@@ -97,9 +94,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
             }
         });
 
-        viewModel.getHealthMetrics().observe(this, metrics -> {
-            // Future: update health cards
-        });
+        // Removed health metrics observer (UI removed)
 
         viewModel.getUpcomingAppointments().observe(this, this::updateAppointmentCards);
 
@@ -125,31 +120,30 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         List<Appointment> upcoming = new ArrayList<>(appointments);
 
-        // ⭐ FIXED — use formatted fields
-        if (!upcoming.isEmpty() && consultationTitle != null) {
+        if (!upcoming.isEmpty()) {
             Appointment first = upcoming.get(0);
 
-            consultationTitle.setText(first.getTitle() != null ? first.getTitle() : "Appointment");
+            if (consultationTitle != null)
+                consultationTitle.setText(first.getTitle() != null ? first.getTitle() : "Appointment");
 
-            // ⭐ FIXED — correct date/time output
-            consultationDate.setText(
-                    first.getFormattedDate() + "  " + first.getFormattedTimeSlot()
-            );
+            if (consultationDate != null)
+                consultationDate.setText(first.getFormattedDate() + "  " + first.getFormattedTimeSlot());
 
-            if (consultationCard != null) consultationCard.setVisibility(View.VISIBLE);
+            if (consultationCard != null)
+                consultationCard.setVisibility(View.VISIBLE);
         }
 
-        if (upcoming.size() > 1 && followupTitle != null) {
+        if (upcoming.size() > 1) {
             Appointment second = upcoming.get(1);
 
-            followupTitle.setText(second.getTitle() != null ? second.getTitle() : "Appointment");
+            if (followupTitle != null)
+                followupTitle.setText(second.getTitle() != null ? second.getTitle() : "Appointment");
 
-            // ⭐ FIXED
-            followupDate.setText(
-                    second.getFormattedDate() + "  " + second.getFormattedTimeSlot()
-            );
+            if (followupDate != null)
+                followupDate.setText(second.getFormattedDate() + "  " + second.getFormattedTimeSlot());
 
-            if (followupCard != null) followupCard.setVisibility(View.VISIBLE);
+            if (followupCard != null)
+                followupCard.setVisibility(View.VISIBLE);
         }
     }
 
@@ -168,7 +162,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         chatBot = new ChatBot(this);
         chatMessages = new ArrayList<>();
         chatMessages.add(new ChatMessage("Hello! I'm your RA assistant. How can I help you today?", false));
-
         chatAdapter = new ChatAdapter(this, chatMessages);
     }
 
@@ -187,11 +180,10 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
 
         View chatCard = findViewById(R.id.chatCard);
-        if (chatCard != null) chatCard.setOnClickListener(v -> showChatDialog());
+        if (chatCard != null)
+            chatCard.setOnClickListener(v -> showChatDialog());
 
-        View healthCard = findViewById(R.id.healthStatsCard);
-        if (healthCard != null) healthCard.setOnClickListener(v ->
-                startActivity(new Intent(this, HealthStatsActivity.class)));
+        // Removed: health stats click listener (UI deleted)
 
         View consultationBtn = findViewById(R.id.consultationDetailsBtn);
         if (consultationBtn != null)
@@ -213,7 +205,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
             });
         }
 
-        if (logoutBtn != null) logoutBtn.setOnClickListener(v -> logout());
+        if (logoutBtn != null)
+            logoutBtn.setOnClickListener(v -> logout());
 
         setupQuickActions();
     }
@@ -265,13 +258,14 @@ public class PatientDashboardActivity extends AppCompatActivity {
         closeBtn.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
 
-        if (chatMessages.size() > 0)
+        if (!chatMessages.isEmpty())
             chatRecyclerView.scrollToPosition(chatMessages.size() - 1);
     }
 
     private void addChatMessage(String message, boolean fromUser) {
         chatMessages.add(new ChatMessage(message, fromUser));
-        if (chatAdapter != null) chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+        if (chatAdapter != null)
+            chatAdapter.notifyItemInserted(chatMessages.size() - 1);
     }
 
     private void logout() {

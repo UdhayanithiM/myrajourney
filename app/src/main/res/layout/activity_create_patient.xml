@@ -252,7 +252,7 @@
                     android:id="@+id/tvPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Default Password: welcome123"
+                    android:text="Default Password: welcome1"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"/>

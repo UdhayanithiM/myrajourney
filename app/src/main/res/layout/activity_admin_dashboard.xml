@@ -8,13 +8,12 @@
     android:layout_height="match_parent"
     tools:context=".admin.dashboard.AdminDashboardActivity">
 
-    <!-- MAIN CONTENT: ConstraintLayout hosts fixed top bar, scrollable content, fixed bottom nav -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background_light">
 
-        <!-- TOP BAR (fixed) -->
+        <!-- TOP BAR -->
         <androidx.cardview.widget.CardView
             android:id="@+id/topBarCard"
             android:layout_width="0dp"
@@ -46,49 +45,45 @@
                         android:id="@+id/iconMenu"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:contentDescription="@string/menu"
                         android:src="@drawable/ic_menu"
-                        app:tint="@color/primary_color"
+                        android:padding="6dp"
                         android:clickable="true"
                         android:focusable="true"
-                        android:padding="6dp"
-                        tools:ignore="UseAppTint" />
+                        app:tint="@color/primary_color" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Admin Dashboard"
-                        android:textSize="20sp"
                         android:textStyle="bold"
+                        android:textSize="20sp"
                         android:textColor="@color/text_primary"
                         android:layout_marginStart="16dp"/>
 
+                    <!-- Updated logout button -->
                     <ImageView
                         android:id="@+id/logoutBtn"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@android:drawable/ic_menu_send"
-                        android:contentDescription="@string/logout"
-                        android:background="@drawable/bg_button_primary"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_logout"
                         android:padding="8dp"
-                        app:tint="@color/white" />
+                        android:background="@drawable/bg_logout_button"
+                        android:contentDescription="Logout"/>
                 </LinearLayout>
 
                 <androidx.appcompat.widget.SearchView
                     android:id="@+id/searchBar"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
                     android:queryHint="Search patients or doctors..."
                     android:iconifiedByDefault="false"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/edit_text_background"
-                    app:searchIcon="@drawable/ic_search" />
+                    android:background="@drawable/edit_text_background" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- SCROLLABLE CONTENT -->
+        <!-- MAIN CONTENT -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/mainScroll"
             android:layout_width="0dp"
@@ -97,29 +92,12 @@
             app:layout_constraintBottom_toTopOf="@id/bottomNavCard"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:fillViewport="true"
-            android:clipToPadding="false">
+            android:fillViewport="true">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="24dp"
-                android:paddingBottom="24dp"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp">
-
-                <!-- Illustration -->
-                <ImageView
-                    android:id="@+id/imgIllustration"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/admin_banner"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="Admin Banner"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                android:padding="20dp">
 
                 <!-- ACTIONS CARD -->
                 <androidx.cardview.widget.CardView
@@ -128,10 +106,9 @@
                     android:layout_height="wrap_content"
                     android:elevation="4dp"
                     app:cardCornerRadius="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/imgIllustration"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginTop="24dp">
+                    app:layout_constraintEnd_toEndOf="parent">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -144,11 +121,12 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Quick Actions"
-                            android:textSize="18sp"
                             android:textStyle="bold"
+                            android:textSize="18sp"
                             android:textColor="@color/text_primary"
                             android:layout_marginBottom="16dp"/>
 
+                        <!-- ORIGINAL BUTTONS (unchanged) -->
                         <Button
                             android:id="@+id/btnCreatePatient"
                             android:layout_width="match_parent"
@@ -205,22 +183,10 @@
                             android:textAllCaps="false"
                             android:layout_marginBottom="12dp"/>
 
-                        <Button
-                            android:id="@+id/btnViewAllDoctors"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_button_outline"
-                            android:text="👨‍⚕️ View All Doctors"
-                            android:textColor="@color/primary_color"
-                            android:textStyle="bold"
-                            android:textSize="16sp"
-                            android:paddingTop="12dp"
-                            android:paddingBottom="12dp"
-                            android:textAllCaps="false"/>
+
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- small spacer at bottom of content so bottom nav doesn't overlap tappable area -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="20dp"
@@ -230,7 +196,7 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>
 
-        <!-- BOTTOM NAV (fixed) -->
+        <!-- BOTTOM NAV (RESTORED FULLY) -->
         <androidx.cardview.widget.CardView
             android:id="@+id/bottomNavCard"
             android:layout_width="0dp"
@@ -255,8 +221,8 @@
                 <LinearLayout
                     android:id="@+id/navUpdatePatient"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:clickable="true"
@@ -268,7 +234,6 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_patient"
-                        android:contentDescription="Patient"
                         app:tint="@color/primary_color" />
 
                     <TextView
@@ -276,16 +241,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Patients"
-                        android:textSize="11sp"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp"/>
+                        android:textSize="11sp"
+                        android:layout_marginTop="4dp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/navUpdateDoctor"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:clickable="true"
@@ -297,7 +262,6 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_doctor"
-                        android:contentDescription="Doctor"
                         app:tint="@color/primary_color" />
 
                     <TextView
@@ -305,16 +269,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Doctors"
-                        android:textSize="11sp"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp"/>
+                        android:textSize="11sp"
+                        android:layout_marginTop="4dp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/navSettings"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:clickable="true"
@@ -326,7 +290,6 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_settings"
-                        android:contentDescription="Settings"
                         app:tint="@color/primary_color" />
 
                     <TextView
@@ -334,16 +297,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Settings"
-                        android:textSize="11sp"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp"/>
+                        android:textSize="11sp"
+                        android:layout_marginTop="4dp" />
                 </LinearLayout>
+
             </LinearLayout>
+
         </androidx.cardview.widget.CardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- NAV DRAWER -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"
         android:layout_width="wrap_content"
