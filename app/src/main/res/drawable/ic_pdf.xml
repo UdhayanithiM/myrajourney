@@ -17,6 +17,6 @@
 
     <!-- PDF Text -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="?attr/colorSurface"
         android:pathData="M8,17v-6h1.5c1.5,0 2.5,1 2.5,2.5S11,17 9.5,17H8zm1,-1.2h0.5c0.8,0 1.3,-0.5 1.3,-1.3 0,-0.8 -0.5,-1.3 -1.3,-1.3H9V15.8zM13,17v-6h2.5c1.3,0 2.1,0.7 2.1,1.9 0,1.2 -0.8,1.9 -2.1,1.9H14v2.2h-1zm1,-3.2h1.3c0.6,0 0.9,-0.3 0.9,-0.7 0,-0.4 -0.3,-0.7 -0.9,-0.7H14v1.4z"/>
 </vector>

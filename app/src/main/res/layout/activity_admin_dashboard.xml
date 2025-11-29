@@ -11,7 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background_light">
+        android:background="?attr/colorBackground">
 
         <!-- TOP BAR -->
         <androidx.cardview.widget.CardView
@@ -29,7 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@color/white"
+                android:background="?attr/colorSurface"
                 android:paddingStart="20dp"
                 android:paddingEnd="20dp"
                 android:paddingTop="16dp"
@@ -49,7 +49,7 @@
                         android:padding="6dp"
                         android:clickable="true"
                         android:focusable="true"
-                        app:tint="@color/primary_color" />
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -58,7 +58,7 @@
                         android:text="Admin Dashboard"
                         android:textStyle="bold"
                         android:textSize="20sp"
-                        android:textColor="@color/text_primary"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginStart="16dp"/>
 
                     <!-- Updated logout button -->
@@ -114,7 +114,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:background="@color/white"
+                        android:background="?attr/colorSurface"
                         android:padding="20dp">
 
                         <TextView
@@ -123,7 +123,7 @@
                             android:text="Quick Actions"
                             android:textStyle="bold"
                             android:textSize="18sp"
-                            android:textColor="@color/text_primary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="16dp"/>
 
                         <!-- ORIGINAL BUTTONS (unchanged) -->
@@ -133,7 +133,7 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_button_primary"
                             android:text="➕ Create New Patient"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorSurface"
                             android:textStyle="bold"
                             android:textSize="16sp"
                             android:paddingTop="12dp"
@@ -147,7 +147,7 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_button_secondary"
                             android:text="➕ Create New Doctor"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorSurface"
                             android:textStyle="bold"
                             android:textSize="16sp"
                             android:paddingTop="12dp"
@@ -161,7 +161,7 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_button_accent"
                             android:text="👥 Assign Patients to Doctors"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorSurface"
                             android:textStyle="bold"
                             android:textSize="16sp"
                             android:paddingTop="12dp"
@@ -175,7 +175,7 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_button_outline"
                             android:text="📋 View All Patients"
-                            android:textColor="@color/primary_color"
+                            android:textColor="?attr/colorPrimary"
                             android:textStyle="bold"
                             android:textSize="16sp"
                             android:paddingTop="12dp"
@@ -214,7 +214,7 @@
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:weightSum="3"
-                android:background="@color/white"
+                android:background="?attr/colorSurface"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp">
 
@@ -234,14 +234,14 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_patient"
-                        app:tint="@color/primary_color" />
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:id="@+id/tvUpdatePatient"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Patients"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="11sp"
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
@@ -262,14 +262,14 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_doctor"
-                        app:tint="@color/primary_color" />
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:id="@+id/tvUpdateDoctor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Doctors"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="11sp"
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
@@ -290,14 +290,14 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_settings"
-                        app:tint="@color/primary_color" />
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:id="@+id/tvSettings"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Settings"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="11sp"
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
@@ -313,7 +313,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/white"
+        android:background="?attr/colorSurface"
         app:headerLayout="@layout/nav_header_doctor"
         app:menu="@menu/doctor_drawer_menu" />
 

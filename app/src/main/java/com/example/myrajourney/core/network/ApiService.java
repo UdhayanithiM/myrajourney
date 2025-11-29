@@ -51,9 +51,11 @@ public interface ApiService {
     @POST("auth/login")
     Call<ApiResponse<AuthResponse>> login(@Body AuthRequest request);
 
+    // ✔ UPDATED — now accepts { "email": "..." }
     @POST("auth/forgot-password")
-    Call<ApiResponse<Void>> forgotPassword(@Body AuthRequest request);
+    Call<ApiResponse<Void>> forgotPassword(@Body Map<String, String> request);
 
+    // ✔ UPDATED — minimal reset: { "email": "...", "password": "..." }
     @POST("auth/reset-password")
     Call<ApiResponse<Void>> resetPassword(@Body Map<String, String> request);
 
@@ -170,7 +172,7 @@ public interface ApiService {
     @GET("reports/{id}")
     Call<ApiResponse<Report>> getReport(@Path("id") String id);
 
-    // ⭐ ADDED — Needed for status update
+    // status
     @POST("reports/status")
     Call<ApiResponse<Object>> updateReportStatus(@Body Map<String, Object> request);
 

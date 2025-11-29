@@ -23,7 +23,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/white"
+                android:background="?attr/colorSurface"
                 app:title="All Patients"
                 app:titleTextColor="@color/black"
                 app:navigationIcon="@drawable/ic_menu">
@@ -115,10 +115,10 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="24dp"
                 android:text="Add Patient"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/primary_color"
+                android:textColor="?attr/colorSurface"
+                android:backgroundTint="?attr/colorPrimary"
                 app:icon="@drawable/ic_add_circle"
-                app:iconTint="@color/white"
+                app:iconTint="?attr/colorSurface"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 

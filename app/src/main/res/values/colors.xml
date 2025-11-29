@@ -1,41 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Original colors -->
+
+    <!-- Standard Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Material Base -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    
-    <!-- App specific colors -->
+
+    <!-- App brand colors -->
     <color name="primary_color">#FF2196F3</color>
     <color name="primary_dark">#FF1976D2</color>
     <color name="accent_color">#FFFF9800</color>
     <color name="secondary_color">#FF4CAF50</color>
-    
-    <!-- Text colors -->
+
+    <!-- Text -->
     <color name="text_primary">#FF212121</color>
     <color name="text_secondary">#FF757575</color>
     <color name="text_hint">#FFBDBDBD</color>
-    
-    <!-- Background colors -->
+
+    <!-- Background -->
     <color name="background_light">#FFF5F5F5</color>
     <color name="background_card">#FFFFFFFF</color>
     <color name="background_chat">#FFF8F9FA</color>
-    
-    <!-- Chat colors -->
+
+    <!-- REQUIRED for themes.xml -->
+    <color name="colorBackground">#FFF5F5F5</color>
+
+    <!-- Chat -->
     <color name="chat_bot_bg">#FFF0F0F0</color>
     <color name="chat_bot_border">#FFE0E0E0</color>
-    
-    <!-- Status colors -->
+
+    <!-- Status -->
     <color name="success_color">#FF4CAF50</color>
     <color name="warning_color">#FFFF9800</color>
     <color name="error_color">#FFF44336</color>
     <color name="info_color">#FF2196F3</color>
-    
-    <!-- Dark theme colors -->
+
+    <!-- DARK MODE COLORS (values-night will override) -->
     <color name="dark_background">#FF121212</color>
     <color name="dark_surface">#FF1E1E1E</color>
     <color name="dark_primary">#FF1976D2</color>
@@ -45,22 +51,23 @@
     <color name="dark_text_secondary">#FFB3B3B3</color>
     <color name="dark_chat_bot_bg">#FF2B2B2B</color>
     <color name="dark_chat_bot_border">#FF404040</color>
-    
-    <!-- Neon colors for dark theme -->
+
+    <!-- Neon -->
     <color name="neon_blue">#FF00D4FF</color>
     <color name="neon_purple">#FFBB86FC</color>
     <color name="neon_cyan">#FF00FFF0</color>
     <color name="neon_pink">#FFFF006E</color>
     <color name="neon_green">#FF39FF14</color>
     <color name="neon_orange">#FFFF6600</color>
-    
-    <!-- Button colors for light theme -->
+
+    <!-- Buttons -->
     <color name="button_new_patient_bg">#E3F2FD</color>
     <color name="button_schedule_bg">#F3E5F5</color>
     <color name="button_reports_bg">#E8F5E9</color>
-    <color name="button_text_light">#000000</color>
-    
-    <!-- AI Insights card -->
+    <color name="button_text_light">#FF000000</color>
+
+    <!-- AI Insights -->
     <color name="ai_insights_bg_light">#FFF3E0</color>
     <color name="ai_insights_title_light">#E65100</color>
+
 </resources>

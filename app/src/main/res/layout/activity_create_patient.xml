@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="?attr/colorBackground"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,7 +18,7 @@
             android:text="Create New Patient"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
             android:gravity="center"
             android:layout_marginBottom="24dp" />
 
@@ -36,7 +36,7 @@
                 android:orientation="vertical"
                 android:padding="20dp"
                 android:gravity="center_horizontal"
-                android:background="@color/white">
+                android:background="?attr/colorSurface">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -44,7 +44,7 @@
                     android:text="Profile Picture"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="12dp" />
 
                 <ImageView
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:text="Upload Picture"
                     android:background="@drawable/bg_button_secondary"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorSurface"
                     android:paddingHorizontal="24dp"
                     android:paddingVertical="12dp"
                     android:textAllCaps="false" />
@@ -84,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="20dp"
-                android:background="@color/white">
+                android:background="?attr/colorSurface">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -92,7 +92,7 @@
                     android:text="Patient Information"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="16dp" />
 
                 <!-- Name -->
@@ -101,7 +101,7 @@
                     android:layout_height="wrap_content"
                     android:text="Full Name"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
@@ -111,7 +111,7 @@
                     android:hint="Enter full name"
                     android:inputType="textPersonName"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -122,7 +122,7 @@
                     android:layout_height="wrap_content"
                     android:text="Mobile Number"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
@@ -133,7 +133,7 @@
                     android:inputType="phone"
                     android:maxLength="10"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -144,7 +144,7 @@
                     android:layout_height="wrap_content"
                     android:text="Age"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
@@ -154,7 +154,7 @@
                     android:hint="Enter age"
                     android:inputType="number"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -165,7 +165,7 @@
                     android:layout_height="wrap_content"
                     android:text="Email Address"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
@@ -175,7 +175,7 @@
                     android:hint="Enter email address"
                     android:inputType="textEmailAddress"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -186,7 +186,7 @@
                     android:layout_height="wrap_content"
                     android:text="Address"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
@@ -198,7 +198,7 @@
                     android:minLines="3"
                     android:gravity="top"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"/>
             </LinearLayout>
@@ -225,7 +225,7 @@
                     android:text="Auto-Generated Credentials"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/primary_color"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="12dp" />
 
                 <TextView
@@ -235,7 +235,7 @@
                     android:text="Patient ID: (Auto-generated)"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp"/>
 
                 <TextView
@@ -245,7 +245,7 @@
                     android:text="Username: (Will be generated)"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp"/>
 
                 <TextView
@@ -255,7 +255,7 @@
                     android:text="Default Password: welcome1"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"/>
+                    android:textColor="?attr/colorOnSurface"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -266,7 +266,7 @@
             android:layout_height="wrap_content"
             android:text="Register Patient"
             android:background="@drawable/bg_button_primary"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorSurface"
             android:textStyle="bold"
             android:textSize="16sp"
             android:paddingVertical="16dp"

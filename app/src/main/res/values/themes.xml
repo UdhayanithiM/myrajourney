@@ -1,69 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Theme.Myrajouney" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
+
+        <!-- PRIMARY COLORS -->
         <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
+
+        <!-- SECONDARY COLORS -->
         <item name="colorSecondary">@color/accent_color</item>
         <item name="colorSecondaryVariant">@color/accent_color</item>
         <item name="colorOnSecondary">@color/white</item>
-        <!-- Full screen - Remove all system bars -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <!-- Background colors -->
-        <item name="android:windowBackground">@color/white</item>
+
+        <!-- BACKGROUND + SURFACE -->
+        <item name="colorBackground">@color/background_light</item>
+        <item name="android:windowBackground">@color/background_light</item>
+
         <item name="colorSurface">@color/background_card</item>
         <item name="colorOnSurface">@color/text_primary</item>
-        <!-- Customize your theme here. -->
-    </style>
-    
-    <!-- NoActionBar theme for splash and onboarding -->
-    <style name="Theme.Myrajouney.NoActionBar" parent="Theme.Myrajouney">
-        <!-- Enhanced full screen settings -->
+
+        <!-- SYSTEM UI -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Layout handling -->
+        <item name="android:fitsSystemWindows">false</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:fitsSystemWindows">false</item>
+    </style>
+
+    <style name="Theme.Myrajouney.NoActionBar" parent="Theme.Myrajouney">
         <item name="android:windowFullscreen">true</item>
     </style>
-    
-    <!-- Full screen theme with additional settings -->
+
     <style name="Theme.Myrajouney.FullScreen" parent="Theme.Myrajouney.NoActionBar">
-        <item name="android:windowBackground">@android:color/white</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
-    
-    <!-- Explicit Dark Theme -->
+
+    <!-- OPTIONAL CUSTOM DARK THEME -->
     <style name="Theme.Myrajouney.Dark" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
         <item name="colorPrimary">@color/neon_blue</item>
         <item name="colorPrimaryVariant">@color/neon_purple</item>
         <item name="colorOnPrimary">@color/white</item>
+
         <item name="colorSecondary">@color/neon_cyan</item>
         <item name="colorSecondaryVariant">@color/neon_pink</item>
         <item name="colorOnSecondary">@color/white</item>
-        <item name="android:statusBarColor">@color/dark_background</item>
-        <item name="android:navigationBarColor">@color/dark_background</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+
+        <item name="colorBackground">@color/dark_background</item>
         <item name="android:windowBackground">@color/dark_background</item>
+
         <item name="colorSurface">@color/dark_surface</item>
         <item name="colorOnSurface">@color/dark_text_primary</item>
-        <item name="android:textColorPrimary">@color/dark_text_primary</item>
-        <item name="android:textColorSecondary">@color/dark_text_secondary</item>
-        <item name="android:colorBackground">@color/dark_background</item>
-        <item name="android:editTextColor">@color/dark_text_primary</item>
-        <item name="android:textColor">@color/dark_text_primary</item>
+
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
+
 </resources>

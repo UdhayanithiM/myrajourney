@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="?attr/colorBackground"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,7 +18,7 @@
             android:text="@string/settings"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
             android:gravity="center"
             android:layout_marginBottom="24dp"/>
 
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:elevation="4dp"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?attr/colorSurface"
             app:cardCornerRadius="16dp"
             xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -43,7 +43,7 @@
                     android:text="Appearance"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="16dp"/>
 
                 <LinearLayout
@@ -66,14 +66,14 @@
                             android:text="Dark Theme"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="@color/text_primary"/>
+                            android:textColor="?attr/colorOnSurface"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Switch between light and dark mode"
                             android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginTop="4dp"/>
                     </LinearLayout>
 
@@ -91,7 +91,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:elevation="4dp"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?attr/colorSurface"
             app:cardCornerRadius="16dp"
             xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -107,7 +107,7 @@
                     android:text="Account Information"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="16dp"/>
 
                 <TextView
@@ -115,7 +115,7 @@
                     android:layout_height="wrap_content"
                     android:text="Email Address"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp"/>
 
                 <EditText
@@ -127,7 +127,7 @@
                     android:focusable="false"
                     android:clickable="false"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -137,7 +137,7 @@
                     android:layout_height="wrap_content"
                     android:text="Phone Number"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp"/>
 
                 <EditText
@@ -147,7 +147,7 @@
                     android:hint="@string/phone"
                     android:inputType="phone"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -157,7 +157,7 @@
                     android:layout_height="wrap_content"
                     android:text="Address"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp"/>
 
                 <EditText
@@ -169,7 +169,7 @@
                     android:minLines="3"
                     android:gravity="top"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"
                     android:layout_marginBottom="16dp"/>
@@ -179,7 +179,7 @@
                     android:layout_height="wrap_content"
                     android:text="New Password (Optional)"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="4dp"/>
 
                 <EditText
@@ -189,7 +189,7 @@
                     android:hint="Enter new password to change"
                     android:inputType="textPassword"
                     android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:background="@drawable/edit_text_background"
                     android:padding="14dp"/>
             </LinearLayout>
@@ -201,7 +201,7 @@
             android:layout_height="wrap_content"
             android:text="@string/save"
             android:background="@drawable/bg_button_primary"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorSurface"
             android:textStyle="bold"
             android:textSize="16sp"
             android:paddingVertical="16dp"

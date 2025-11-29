@@ -3,173 +3,138 @@ package com.example.myrajourney.admin.users;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
-// ✅ FIX 1: Import R to access layout and IDs
 import com.example.myrajourney.R;
-// ✅ FIX 2: Import LoginActivity so Intent can find it
 import com.example.myrajourney.auth.LoginActivity;
-
+import com.example.myrajourney.core.network.ApiClient;
 import com.example.myrajourney.core.network.ApiService;
 import com.example.myrajourney.data.model.ApiResponse;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class ResetPasswordActivity extends AppCompatActivity {
 
-    private EditText etEmail, etPassword, etConfirmPassword, etToken;
+    private EditText etPassword, etConfirmPassword;
     private Button btnReset;
-    private TextView tvInfo;
-    private String token;
+    private String email;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reset_password);
 
-        // Get token from intent or URL
-        Intent intent = getIntent();
-        token = intent.getStringExtra("token");
-        if (token == null && intent.getData() != null) {
-            // Extract token from URL
-            String data = intent.getData().toString();
-            if (data.contains("token=")) {
-                token = data.substring(data.indexOf("token=") + 6);
-                if (token.contains("&")) {
-                    token = token.substring(0, token.indexOf("&"));
-                }
-            }
+        // Email coming from ForgotPasswordActivity
+        email = getIntent().getStringExtra("email");
+
+        if (email == null || email.isEmpty()) {
+            Toast.makeText(this, "Invalid reset request", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
 
         initializeViews();
-        setupClickListeners();
+        setupListeners();
     }
 
     private void initializeViews() {
-        etEmail = findViewById(R.id.etEmail);
+
+        // Hide email + token views completely (you don’t need them anymore)
+        findViewById(R.id.etEmail).setVisibility(android.view.View.GONE);
+        findViewById(R.id.tvEmailLabel).setVisibility(android.view.View.GONE);
+        findViewById(R.id.etToken).setVisibility(android.view.View.GONE);
+        findViewById(R.id.tvTokenLabel).setVisibility(android.view.View.GONE);
+
         etPassword = findViewById(R.id.etPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
-        etToken = findViewById(R.id.etToken);
         btnReset = findViewById(R.id.btnReset);
-        tvInfo = findViewById(R.id.tvInfo);
 
-        // If token is provided, hide email field and show token field
-        if (token != null && !token.isEmpty()) {
-            etToken.setText(token);
-            etToken.setEnabled(false);
-            etEmail.setVisibility(View.GONE);
-            // Ensure this ID exists in your layout, or wrap in try-catch if uncertain
-            View emailLabel = findViewById(R.id.tvEmailLabel);
-            if (emailLabel != null) emailLabel.setVisibility(View.GONE);
-
-            tvInfo.setText("Enter your new password. Password must be at least 8 characters long.");
-        } else {
-            etToken.setVisibility(View.GONE);
-            View tokenLabel = findViewById(R.id.tvTokenLabel);
-            if (tokenLabel != null) tokenLabel.setVisibility(View.GONE);
-
-            tvInfo.setText("Enter your email and new password. Password must be at least 8 characters long.");
-        }
+        TextView tvInfo = findViewById(R.id.tvInfo);
+        tvInfo.setText("Enter your new password (minimum 8 characters).");
     }
 
-    private void setupClickListeners() {
-        btnReset.setOnClickListener(v -> performReset());
+    private void setupListeners() {
 
-        // Back to login
-        TextView tvBackToLogin = findViewById(R.id.tvBackToLogin);
-        if (tvBackToLogin != null) {
-            tvBackToLogin.setOnClickListener(v -> {
-                Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            });
-        }
+        btnReset.setOnClickListener(v -> validateAndReset());
+
+        findViewById(R.id.tvBackToLogin).setOnClickListener(v -> {
+            Intent i = new Intent(ResetPasswordActivity.this, LoginActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+        });
     }
 
-    private void performReset() {
-        String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
-        String confirmPassword = etConfirmPassword.getText().toString().trim();
-        String resetToken = etToken.getText().toString().trim();
+    private void validateAndReset() {
+        String pass = etPassword.getText().toString().trim();
+        String confirm = etConfirmPassword.getText().toString().trim();
 
-        // Validation
-        if (token == null || token.isEmpty()) {
-            // Email-based reset
-            if (TextUtils.isEmpty(email)) {
-                Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(pass)) {
+            Toast.makeText(this, "Enter password", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (password.length() < 8) {
-            Toast.makeText(this, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show();
+        if (pass.length() < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (!password.equals(confirmPassword)) {
+        if (!pass.equals(confirm)) {
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Use token from field if available, otherwise use intent token
-        if (resetToken.isEmpty() && token != null) {
-            resetToken = token;
-        }
-
-        // Call API
-        resetPasswordAPI(email, password, resetToken);
+        resetPassword(pass);
     }
 
-    private void resetPasswordAPI(String email, String password, String resetToken) {
-        ApiService api = com.example.myrajourney.core.network.ApiClient.getApiService(this);
+    private void resetPassword(String password) {
 
-        // Create request body
-        java.util.Map<String, String> requestBody = new java.util.HashMap<>();
-        if (!email.isEmpty()) {
-            requestBody.put("email", email);
-        }
-        requestBody.put("password", password);
-        if (!resetToken.isEmpty()) {
-            requestBody.put("token", resetToken);
-        }
+        ApiService api = ApiClient.getApiService(this);
 
-        retrofit2.Call<ApiResponse<Void>> call = api.resetPassword(requestBody);
+        Map<String, String> body = new HashMap<>();
+        body.put("email", email);
+        body.put("password", password);
 
-        call.enqueue(new retrofit2.Callback<ApiResponse<Void>>() {
+        api.resetPassword(body).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
-            public void onResponse(retrofit2.Call<ApiResponse<Void>> call, retrofit2.Response<ApiResponse<Void>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    Toast.makeText(ResetPasswordActivity.this, "Password reset successfully! You can now login with your new password.", Toast.LENGTH_LONG).show();
-                    // Navigate to login
+            public void onResponse(Call<ApiResponse<Void>> call,
+                                   Response<ApiResponse<Void>> response) {
+
+                if (response.isSuccessful()
+                        && response.body() != null
+                        && response.body().isSuccess()) {
+
+                    Toast.makeText(ResetPasswordActivity.this,
+                            "Password reset successful!",
+                            Toast.LENGTH_LONG).show();
+
                     Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
-                    finish();
-                } else {
-                    String errorMsg = "Password reset failed";
-                    if (response.body() != null && response.body().getError() != null) {
-                        errorMsg = response.body().getError().getMessage();
-                    }
-                    Toast.makeText(ResetPasswordActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    return;
                 }
+
+                String msg = "Reset failed";
+                if (response.body() != null && response.body().getError() != null)
+                    msg = response.body().getError().getMessage();
+
+                Toast.makeText(ResetPasswordActivity.this, msg, Toast.LENGTH_LONG).show();
             }
 
             @Override
-            public void onFailure(retrofit2.Call<ApiResponse<Void>> call, Throwable t) {
-                Toast.makeText(ResetPasswordActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Toast.makeText(ResetPasswordActivity.this,
+                        "Network error, try again",
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -10,7 +10,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginBottom="16dp"
-        android:indeterminateTint="@color/primary_color" />
+        android:indeterminateTint="?attr/colorPrimary" />
 
     <TextView
         android:id="@+id/loading_message"
@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:text="Loading..."
         android:textSize="16sp"
-        android:textColor="@color/text_primary"
+        android:textColor="?attr/colorOnSurface"
         android:gravity="center" />
 
 </LinearLayout>

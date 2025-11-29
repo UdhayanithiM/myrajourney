@@ -3,13 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_light">
+    android:background="?attr/colorBackground">
 
     <!-- Top Padding Space -->
     <View
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:background="@color/primary_color" />
+        android:background="?attr/colorPrimary" />
 
     <!-- Top App Bar -->
     <LinearLayout
@@ -19,7 +19,7 @@
         android:padding="16dp"
         android:paddingTop="20dp"
         android:paddingBottom="20dp"
-        android:background="@color/primary_color"
+        android:background="?attr/colorPrimary"
         android:gravity="center_vertical">
 
         <ImageView
@@ -28,7 +28,7 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_menu"
             android:contentDescription="Menu"
-            android:tint="@color/white"
+            android:tint="?attr/colorSurface"
             android:background="@drawable/circle_background"
             android:padding="8dp" />
 
@@ -44,7 +44,7 @@
                 android:layout_height="40dp"
                 android:src="@android:drawable/ic_dialog_info"
                 android:contentDescription="Notifications"
-                android:tint="@color/white"
+                android:tint="?attr/colorSurface"
                 android:background="@drawable/circle_background"
                 android:padding="8dp" />
 
@@ -54,7 +54,7 @@
                 android:layout_height="18dp"
                 android:layout_gravity="end|top"
                 android:background="@android:color/holo_red_dark"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorSurface"
                 android:textSize="10sp"
                 android:gravity="center"
                 android:visibility="gone"
@@ -68,7 +68,7 @@
             android:layout_marginStart="16dp"
             android:src="@android:drawable/ic_menu_send"
             android:contentDescription="Logout"
-            android:tint="@color/white"
+            android:tint="?attr/colorSurface"
             android:background="@drawable/circle_background"
             android:padding="8dp" />
 
@@ -99,7 +99,7 @@
                 android:background="@drawable/edit_text_background"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
                 android:textColorHint="@color/text_hint" />
 
             <!-- Quick Actions -->
@@ -116,8 +116,8 @@
                     android:layout_weight="1"
                     android:text="💬 Chat Assistant"
                     android:layout_marginEnd="8dp"
-                    android:backgroundTint="@color/accent_color"
-                    android:textColor="@color/white"
+                    android:backgroundTint="?attr/colorSecondary"
+                    android:textColor="?attr/colorSurface"
                     android:textAllCaps="false" />
 
                 <Button
@@ -127,7 +127,7 @@
                     android:text="📊 Health Stats"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="@color/secondary_color"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorSurface"
                     android:textAllCaps="false" />
 
             </LinearLayout>
@@ -145,7 +145,7 @@
                     android:text="Health Overview"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="12dp" />
 
                 <LinearLayout
@@ -176,7 +176,7 @@
                             android:layout_height="wrap_content"
                             android:text="Heart Rate"
                             android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
@@ -213,7 +213,7 @@
                             android:layout_height="wrap_content"
                             android:text="Blood Pressure"
                             android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
@@ -258,7 +258,7 @@
                             android:layout_height="wrap_content"
                             android:text="Temperature"
                             android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
@@ -295,7 +295,7 @@
                             android:layout_height="wrap_content"
                             android:text="Pain Level"
                             android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
@@ -328,7 +328,7 @@
                     android:text="Daily Task Check"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="12dp" />
 
                 <TextView
@@ -336,7 +336,7 @@
                     android:layout_height="wrap_content"
                     android:text="Have you completed your daily exercises and taken your medications?"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="16dp" />
 
                 <LinearLayout
@@ -353,7 +353,7 @@
                         android:text="✅ Yes"
                         android:layout_marginEnd="8dp"
                         android:backgroundTint="@color/success_color"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorSurface"
                         android:textAllCaps="false" />
 
                     <Button
@@ -364,7 +364,7 @@
                         android:text="❌ No"
                         android:layout_marginStart="8dp"
                         android:backgroundTint="@color/error_color"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorSurface"
                         android:textAllCaps="false" />
 
                 </LinearLayout>
@@ -386,7 +386,7 @@
                     android:text="📅 Upcoming Appointments"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="12dp" />
 
                 <TextView
@@ -394,7 +394,7 @@
                     android:layout_height="wrap_content"
                     android:text="• Dec 15, 2024 - Consultation at 10:30 AM"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
                 <TextView
@@ -402,7 +402,7 @@
                     android:layout_height="wrap_content"
                     android:text="• Dec 28, 2024 - Follow-up at 2:00 PM"
                     android:textSize="14sp"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="?attr/colorOnSurface" />
 
             </LinearLayout>
 
@@ -415,7 +415,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
-        android:background="@color/background_light"
+        android:background="?attr/colorBackground"
         android:elevation="8dp">
 
         <Button
@@ -425,8 +425,8 @@
             android:layout_weight="1"
             android:text="📝 Symptoms"
             android:textAllCaps="false"
-            android:backgroundTint="@color/background_card"
-            android:textColor="@color/text_primary"
+            android:backgroundTint="?attr/colorSurface"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp" />
 
         <Button
@@ -436,8 +436,8 @@
             android:layout_weight="1"
             android:text="📄 Reports"
             android:textAllCaps="false"
-            android:backgroundTint="@color/background_card"
-            android:textColor="@color/text_primary"
+            android:backgroundTint="?attr/colorSurface"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp" />
 
         <Button
@@ -447,8 +447,8 @@
             android:layout_weight="1"
             android:text="⚙️ Settings"
             android:textAllCaps="false"
-            android:backgroundTint="@color/background_card"
-            android:textColor="@color/text_primary"
+            android:backgroundTint="?attr/colorSurface"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp" />
 
     </LinearLayout>
